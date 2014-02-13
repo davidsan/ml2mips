@@ -60,7 +60,8 @@ distrib:
 clean:
 	/bin/rm -f *~ *.cmi *.cmo alex.ml asyn.ml $(CIBLE)
 
-
+mrproper: clean
+	/bin/rm -f intertypeur intereval ml2$(NAME)
 depend:
 	cp Makefile Makefile.bak
 	(sed -e '/^#.*DEPEND.*automatic/,$$d' Makefile.bak; \
