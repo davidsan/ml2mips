@@ -27,8 +27,8 @@ List.map build [
 	"snd","MLruntime.MLsnd"
 	];;
 
-initial_trans_env:=
 
+initial_trans_env:=
 let alpha = max_unknown () in
 [",", ("MLruntime.MLpair", Fun_type (Pair_type (alpha, alpha),
 		Pair_type (alpha, alpha)))]@
@@ -39,7 +39,7 @@ let alpha = max_unknown () in
 	List.map build
 		["true" ,"MLruntime.MLtrue";
 		"false","MLruntime.MLfalse";
-		"+","MLruntime.MLaddint";
+		"+","add";
 		"-","MLruntime.MLsubint";
 		"*","MLruntime.MLmulint";
 		"/","MLruntime.MLdivint";
@@ -113,13 +113,16 @@ let footer_two s = ();;
 let header_three s =
 	List.iter out
 		[ "\n\n";
-		"public static void main(String []args) {\n"]
+		"main:\n"]
 ;;
 let footer_three s =
 	List.iter out
 		[ "\n}}\n\n"]
 ;;
-(* on recuoere le type pour une declaration precise *)
+
+
+
+(* on recupere le type pour une declaration precise *)
 let string_of_const_type ct = match ct with
 		INTTYPE -> "MLint "
 	| FLOATTYPE -> "MLdouble "
@@ -248,7 +251,7 @@ let prod_invoke_fun cn ar t lp instr =
 	List.iter (fun x -> out (", MLvalue "^x)) (List.tl lp);
 	out_line ") {";
 	prod_instr (true,"",2) instr;
-	
+	 
 	out_start "}" 1;
 	out_line ""
 ;;
@@ -259,7 +262,7 @@ let prod_fun instr = match instr with
 			fun_header ns class_name ;
 			out_line ("class "^class_name^" extends MLfun {");
 			out_line "";
-			out_line ("  private static int MAX = "^(string_of_int ar)^";") ;
+		 	out_line ("  private static int MAX = "^(string_of_int ar)^";") ;
 			out_line "";
 			out_line ("  "^class_name^"() {super();}") ;
 			out_line "";
