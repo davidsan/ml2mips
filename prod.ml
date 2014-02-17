@@ -75,20 +75,31 @@ let out_after (fr, sd, nb) =
 	else if fr then out ";";;
 
 (* des fonctions utilitaires pour commenter un peu la production *)
+
+(* ON GARDE *)
 let header_main s =
 	List.iter out
-		["/**\n";
-		" *  "^ s ^ ".java" ^ " engendre par ml2java \n";
-		" */\n"]
+		[
+(*		  "/**\n"; *)
+		"#"^ s ^ ".java" ^ " engendre par ml2java \n"
+(*		" */\n" *)
+		]
 ;;
 
+
+(* ON GARDE *)
 let footer_main s =
 	List.iter out
-		["// fin du fichier " ^ s ^ ".java\n"]
+		["# fin du fichier " ^ s ^ ".java\n"]
 ;;
+
+(* PAS UTILE *)
 let header_one s =
 	List.iter out
-		[];;
+		["# coucou\n"]
+;;
+
+
 let footer_one s = ();;
 let header_two s =
 	List.iter out
@@ -199,13 +210,16 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
 	
 	| FUNCTION _ -> ()
 ;;
+
+(* UTILE : to clean *)
 let fun_header fn cn =
 	List.iter out
 		["\n\n";
-		"/**\n";
-		" *  de'claration de la fonction "^fn^"\n";
-		" *    vue comme la classe : "^cn^"\n";
-		" */ \n"]
+(*		"/**\n"; *)
+		"# Declaration de la fonction "^fn^"\n";
+(*		" *    vue comme la classe : "^cn^"\n"; *)
+(*		" */ \n" *)
+]
 ;;
 let prod_invoke cn ar =
 	List.iter out_line
@@ -273,8 +287,11 @@ let prod_file filename ast_li =
 	change_output_channel oc;
 	module_name:= filename;
 	try
+
 		header_main filename;
+(*
 		header_one filename;
+*)
 		prod_one ast_li;
 		footer_one filename;
 		header_two filename;
