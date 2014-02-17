@@ -3,8 +3,8 @@ open Typeur;;
 open Env_typeur;;
 open Env_trans;;
 open Langinter;;
-let compiler_name = ref "ml2java";;
-let object_suffix = ref ".java";;
+let compiler_name = ref "ml2mips";;
+let object_suffix = ref ".asm";;
 
 (* des valeurs pour certains symboles de env_trans *)
 pair_symbol:=",";;
@@ -27,8 +27,8 @@ List.map build [
 	"snd","MLruntime.MLsnd"
 	];;
 
-initial_trans_env:=
 
+initial_trans_env:=
 let alpha = max_unknown () in
 [",", ("MLruntime.MLpair", Fun_type (Pair_type (alpha, alpha),
 		Pair_type (alpha, alpha)))]@
@@ -39,7 +39,7 @@ let alpha = max_unknown () in
 	List.map build
 		["true" ,"MLruntime.MLtrue";
 		"false","MLruntime.MLfalse";
-		"+","MLruntime.MLaddint";
+		"+","add";
 		"-","MLruntime.MLsubint";
 		"*","MLruntime.MLmulint";
 		"/","MLruntime.MLdivint";
@@ -75,6 +75,8 @@ let out_after (fr, sd, nb) =
 	else if fr then out ";";;
 
 (* des fonctions utilitaires pour commenter un peu la production *)
+
+
 let header_main s =
 	List.iter out
 		["/**\n";
@@ -102,13 +104,16 @@ let footer_two s = ();;
 let header_three s =
 	List.iter out
 		[ "\n\n";
-		"public static void main(String []args) {\n"]
+		"main:\n"]
 ;;
 let footer_three s =
 	List.iter out
 		[ "\n}}\n\n"]
 ;;
-(* on recuoere le type pour une declaration precise *)
+
+
+
+(* on recupere le type pour une declaration precise *)
 let string_of_const_type ct = match ct with
 		INTTYPE -> "MLint "
 	| FLOATTYPE -> "MLdouble "
@@ -125,7 +130,8 @@ let rec string_of_type typ = match typ with
 	| REFTYPE -> "MLref "
 ;;
 let prod_global_var instr = match instr with
-		VAR (v, t) -> out_start ("static "^"MLvalue "^(*(string_of_type t)*)v^";") 1
+		VAR (v, t) -> ()
+(*out_start ("statictoto "^"MLvalue "^(*(string_of_type t)*)v^";") 1 *)
 	| FUNCTION (ns, t1, ar, (p, t2), instr) ->
 			out_start ("static MLvalue "(*"fun_"^ns^" "*)^ns^"= new MLfun_"^ns^"("^(string_of_int ar)^");") 1
 	| _ -> ()
@@ -234,7 +240,7 @@ let prod_invoke_fun cn ar t lp instr =
 	List.iter (fun x -> out (", MLvalue "^x)) (List.tl lp);
 	out_line ") {";
 	prod_instr (true,"",2) instr;
-	
+	 
 	out_start "}" 1;
 	out_line ""
 ;;
@@ -242,10 +248,10 @@ let prod_invoke_fun cn ar t lp instr =
 let prod_fun instr = match instr with
 		FUNCTION (ns, t1, ar, (lp, t2), instr) ->
 			let class_name = "MLfun_"^ns in
-			fun_header ns class_name ;
-			out_line ("class "^class_name^" extends MLfun {");
+(*			fun_header ns class_name;*)
+			out_line (class_name^":");
 			out_line "";
-			out_line ("  private static int MAX = "^(string_of_int ar)^";") ;
+		 	out_line ("  private static int MAX = "^(string_of_int ar)^";") ;
 			out_line "";
 			out_line ("  "^class_name^"() {super();}") ;
 			out_line "";
@@ -273,17 +279,31 @@ let prod_file filename ast_li =
 	change_output_channel oc;
 	module_name:= filename;
 	try
+		(*
 		header_main filename;
 		header_one filename;
+		*)
+    out_line ("\n// // DEBUT PROD_ONE");
 		prod_one ast_li;
+    out_line ("\n// // FIN PROD_ONE");
+    (*
 		footer_one filename;
 		header_two filename;
+		*)
+    out_line ("\n// // DEBUT PROD_TWO");
 		prod_two ast_li;
+    out_line ("\n// // FIN PROD_TWO");
+		(*
 		footer_two filename;
 		header_three filename;
+		*)
+    out_line ("\n// // DEBUT PROD_THREE");
 		prod_three ast_li;
+    out_line ("\n// // FIN PROD_THREE");
+		(*
 		footer_three filename;
 		footer_main filename;
+		*)
 		close_out oc
 	with x -> close_out oc; raise x;;
 
