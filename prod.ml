@@ -66,7 +66,7 @@ let out_line s = out (s^"\n");;
 (* à changer *)
 let out_before (fr, sd, nb) =
   if sd <>"" then out_start (sd^"=s") nb
-  else if fr then out_start ("return ") nb;;
+  else if fr then out_start ("") nb;;
 
 let out_after (fr, sd, nb) =
   if sd <>"" then
@@ -74,7 +74,7 @@ let out_after (fr, sd, nb) =
       out ";";
       if fr then out (("return "^sd^";"))
     end
-  else if fr then out ";";;
+  else if fr then out "";;
 
 (* des fonctions utilitaires pour commenter un peu la production *)
 
@@ -198,7 +198,7 @@ let get_param_type lv =
 
 (* constante *)
 let prod_const c = match c with
-    INT i -> out ("new MLint("^(string_of_int i)^")")
+    INT i -> out ("li $v0 "^(string_of_int i)^"")
   | FLOAT f -> out ("new MLdouble("^(string_of_float f)^")")
   | BOOL b -> out ("new MLbool("^(if b then "true" else "false")^")")
   | STRING s -> out ("new MLstring("^"\""^s^"\""^")")
@@ -216,18 +216,27 @@ let rec prod_local_var (fr, sd, nb) (v, t) =
 (* true, "", 2 *)
 let rec prod_instr (fr, sd, nb) instr = match instr with
     CONST c -> 
+      out ("");
+      out_start "# debut CONST " nb;
       out_before (fr, sd, nb);
       prod_const c;
-      out_after (fr, sd, nb)
+      out_after (fr, sd, nb);
+      out_start "# fin CONST " nb;
   | VAR (v, t) -> 
+      out ("");
+      out_start "# debut VAR " nb;
       if (nb = 0) && ( sd = "") then ()
       else
 	begin
-	  out_before (fr, sd, nb);
-	  out v;
+    out_before (fr, sd, nb);
+    out v;
 	  out_after (fr, sd, nb)
-	end
+	end;
+  out_start "# fin VAR " nb
   | IF(i1, i2, i3) ->
+
+      out ("");
+      out_start "# debut if " nb;
       out_start "if (" nb;
       out ("((MLbool)");
       prod_instr (false,"", nb) i1 ;
@@ -236,17 +245,31 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       out ")";
       prod_instr (fr, sd, nb +1) i2 ;
       out_start "else" (nb);
-      prod_instr (fr, sd, nb +1) i3
-  | RETURN i -> prod_instr (true,"", nb) i
-  | AFFECT (v, i) -> prod_instr (false, v, nb) i
-  | BLOCK(l, i) -> out_start "{ " nb;
+      prod_instr (fr, sd, nb +1) i3;
+
+      out_start "# fin if " nb;
+  | RETURN i -> 
+      out ("  "); 
+      out_start "# debut return " nb;
+      prod_instr (true,"", nb) i;
+      out_start "# fin return \n" nb;
+  | AFFECT (v, i) ->
+      out (""); 
+      out_start "# debut affect " nb;
+      prod_instr (false, v, nb) i;
+      out_start "# fin affect \n" nb;
+  | BLOCK(l, i) ->
+      out (""); 
+      out_start "# debut block " nb;
       List.iter (fun (v, t, i) -> prod_local_var (false,"", nb +1)
 		   (v, t)) l;
       List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1) i) l;
       prod_instr (fr, sd, nb +1) i;
-      out_start "}" nb
+      out_start "# fin block \n" nb
 	
   | APPLY(i1, i2) ->
+      out (""); 
+      out_start "# debut apply " nb;
       out_before(fr, sd, nb);
       out ("((MLfun)");
       prod_instr (false,"", nb) i1;
@@ -254,19 +277,29 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       out ".invoke(";
       prod_instr (false,"", nb) i2;
       out")";
-      out_after(fr, sd, nb)
+      out_after(fr, sd, nb);
+      out_start "# fin apply " nb;
   | PRIM ((name, typ), instrl) ->
+
+      out (""); 
+      out_start "# debut prim " nb;
       let ltp = get_param_type instrl in
-	out_before (fr, sd, nb);
-	out (name^"( ("^(string_of_type (List.hd ltp))^")");
-	prod_instr (false,"", nb +1) (List.hd instrl);
-	List.iter2 (fun x y -> out (",("^(string_of_type y)^")");
-		      prod_instr (false,"", nb +1) x)
-	  (List.tl instrl) (List.tl ltp);
-	out ")" ;
-	out_after(fr, sd, nb)
+      	out_before (fr, sd, nb);
+      	out (name^"( ("^(string_of_type (List.hd ltp))^")");
+
+      	prod_instr (false,"", nb +1) (List.hd instrl);
+      	List.iter2 (fun x y -> out (",("^(string_of_type y)^")");
+      		      prod_instr (false,"", nb +1) x)
+      	  (List.tl instrl) (List.tl ltp);
+      	out ")" ;
+      	out_after(fr, sd, nb);
+        out_start "# fin prim " nb;
 	  
-  | FUNCTION _ -> ()
+  | FUNCTION _ -> 
+      out (""); 
+      out_start "# debut function " nb;
+      ();
+      out_start "# fin function " nb;
 ;;
 
 (* UTILE : to clean *)
