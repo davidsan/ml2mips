@@ -33,7 +33,7 @@ open Prod;;  (* ici ce sera un lien sur prodjava *)
 (* des symboles globaux bien utiles par la suite *)
 
 let version = ref "0.1";;
-let date = ref "13/04/2006";;
+let date = ref "20/02/2014";;
 
 
 (* deux modes de compilation pour tracer un peu ce qui se passe *)

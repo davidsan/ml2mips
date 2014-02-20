@@ -3,8 +3,8 @@ open Typeur;;
 open Env_typeur;;
 open Env_trans;;
 open Langinter;;
-let compiler_name = ref "ml2java";;
-let object_suffix = ref ".sh";;
+let compiler_name = ref "ml2mips";;
+let asm_suffix = ref ".s";;
 let verbose_mode = ref true;;
 
 (* des valeurs pour certains symboles de env_trans *)
@@ -85,7 +85,7 @@ let header_main s =
 	if !verbose_mode then
 		List.iter out
 			[
-			"# "^ s ^ ".java" ^ " engendre par ml2java\n"
+			"# "^ s ^ (!asm_suffix) ^ " engendre par "^(!compiler_name)^"\n";
 			]
 ;;
 
@@ -95,7 +95,7 @@ let footer_main s =
 		List.iter out
 			[
 			"\n";
-			"# Fin du fichier " ^ s ^ ".java\n"
+			"# Fin du fichier " ^ s ^ (!asm_suffix) ^"\n"
 			]
 ;;
 
@@ -433,7 +433,7 @@ let prod_three ast_li =
 
 (* point d'entrée *)
 let prod_file filename ast_li =
-	let obj_name = filename ^ !object_suffix in
+	let obj_name = filename ^ !asm_suffix in
 	let oc = open_out obj_name in
 	change_output_channel oc;
 	module_name:= filename;
