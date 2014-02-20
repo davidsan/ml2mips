@@ -4,7 +4,7 @@ open Env_typeur;;
 open Env_trans;;
 open Langinter;;
 let compiler_name = ref "ml2java";;
-let object_suffix = ref ".java";;
+let object_suffix = ref ".sh";;
 
 (* des valeurs pour certains symboles de env_trans *)
 pair_symbol:=",";;
