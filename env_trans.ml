@@ -35,6 +35,62 @@ let gensym_var =
     s^"___"^(string_of_int !c)
 ;;
 
+(* Registres $t *)
+let mips_reg_t = ref (-1)
+;;
+let mips_gensym_reg_t () = 
+   	mips_reg_t:=!mips_reg_t+1;
+   	"$t"^(string_of_int !mips_reg_t)
+and mips_resetsym_reg_t () =
+	mips_reg_t:=-1;
+	""
+;;
+
+(* Registres $a *)
+let mips_reg_a = ref (-1)
+;;
+let mips_gensym_reg_a () = 
+   	mips_reg_a:=!mips_reg_a+1;
+   	"$a"^(string_of_int !mips_reg_a)
+and mips_resetsym_reg_a () =
+	mips_reg_a:=-1;
+	""
+;;
+
+(* Registres $s *)
+let mips_reg_s = ref (-1)
+;;
+let mips_gensym_reg_s () = 
+   	mips_reg_s:=!mips_reg_s+1;
+   	"$s"^(string_of_int !mips_reg_s)
+and mips_resetsym_reg_s () =
+	mips_reg_s:=-1;
+	""
+;;
+
+(* Registres $v *)
+let mips_reg_v = ref (-1)
+;;
+let mips_gensym_reg_v () = 
+   	mips_reg_v:=!mips_reg_v+1;
+   	"$v"^(string_of_int !mips_reg_v)
+and mips_resetsym_reg_v () =
+	mips_reg_v:=-1;
+	""
+;;
+
+let mips_resetsym_tsv () =
+	mips_resetsym_reg_t;
+	mips_resetsym_reg_s;
+	mips_resetsym_reg_v
+;;
+
+let mips_resetsym_all () =
+	mips_resetsym_tsv;
+	mips_resetsym_reg_a
+;;
+
+
 let module_name = ref "noname";;
 let new_temp ()     = gensym_var temp_symbol;;
 let new_name s      = gensym_var s;;
