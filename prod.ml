@@ -65,7 +65,7 @@ let out_line s = out (s^"\n");;
 
 (* à changer *)
 let out_before (fr, sd, nb) =
-  if sd <>"" then out_start (sd^"=s") nb
+  if sd <>"" then out_start (sd^"   =   ") nb
   else if fr then out_start ("") nb;;
 
 let out_after (fr, sd, nb) =
@@ -214,10 +214,11 @@ let rec prod_local_var (fr, sd, nb) (v, t) =
 
 (* instructions *)
 (* true, "", 2 *)
-let rec prod_instr (fr, sd, nb) instr = match instr with
+let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
     CONST c -> 
       out ("");
       out_start "# debut CONST " nb;
+      out ("\n");
       out_before (fr, sd, nb);
       prod_const c;
       out_after (fr, sd, nb);
@@ -225,57 +226,61 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
   | VAR (v, t) -> 
       out ("");
       out_start "# debut VAR " nb;
+      out ("\n");
       if (nb = 0) && ( sd = "") then ()
       else
 	begin
-    out_before (fr, sd, nb);
-    out v;
-	  out_after (fr, sd, nb)
+     out_before (fr, sd, nb);
+     out v;(* 
+	  out_after (fr, sd, nb) *)
 	end;
-  out_start "# fin VAR " nb
+  out_start "# fin VAR \n" nb
   | IF(i1, i2, i3) ->
 
       out ("");
       out_start "# debut if " nb;
       out_start "if (" nb;
       out ("((MLbool)");
-      prod_instr (false,"", nb) i1 ;
+      prod_instr (false,"", nb, regv, regt) i1 ;
       out ")";
       out".MLaccess()";
       out ")";
-      prod_instr (fr, sd, nb +1) i2 ;
+      prod_instr (fr, sd, nb +1, regv, regt) i2 ;
       out_start "else" (nb);
-      prod_instr (fr, sd, nb +1) i3;
+      prod_instr (fr, sd, nb +1, regv, regt) i3;
 
       out_start "# fin if " nb;
   | RETURN i -> 
       out ("  "); 
       out_start "# debut return " nb;
-      prod_instr (true,"", nb) i;
+      prod_instr (true,"", nb, regv, regt) i;
       out_start "# fin return \n" nb;
   | AFFECT (v, i) ->
       out (""); 
       out_start "# debut affect " nb;
-      prod_instr (false, v, nb) i;
+      prod_instr (false, v, nb, regv, regt) i;
       out_start "# fin affect \n" nb;
   | BLOCK(l, i) ->
       out (""); 
-      out_start "# debut block " nb;
-      List.iter (fun (v, t, i) -> prod_local_var (false,"", nb +1)
+      out_start "# debut block " nb; 
+     (*  List.iter (fun (v, t, i) -> prod_local_var (false,"", nb +1)
 		   (v, t)) l;
-      List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1) i) l;
-      prod_instr (fr, sd, nb +1) i;
-      out_start "# fin block \n" nb
+ *)
+      out_start "# PROD _ INSTRUCTIONS " nb;
+
+      List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1, regv, regt) i) l;
+      prod_instr (fr, sd, nb +1, regv, regt) i;
+       out_start "# fin block \n" nb 
 	
   | APPLY(i1, i2) ->
       out (""); 
       out_start "# debut apply " nb;
       out_before(fr, sd, nb);
       out ("((MLfun)");
-      prod_instr (false,"", nb) i1;
+      prod_instr (false,"", nb, regv, regt) i1;
       out ")";
       out ".invoke(";
-      prod_instr (false,"", nb) i2;
+      prod_instr (false,"", nb, regv, regt) i2;
       out")";
       out_after(fr, sd, nb);
       out_start "# fin apply " nb;
@@ -287,9 +292,9 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       	out_before (fr, sd, nb);
       	out (name^"( ("^(string_of_type (List.hd ltp))^")");
 
-      	prod_instr (false,"", nb +1) (List.hd instrl);
+      	prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
       	List.iter2 (fun x y -> out (",("^(string_of_type y)^")");
-      		      prod_instr (false,"", nb +1) x)
+      		      prod_instr (false,"", nb +1, regv, regt) x)
       	  (List.tl instrl) (List.tl ltp);
       	out ")" ;
       	out_after(fr, sd, nb);
@@ -317,10 +322,10 @@ let fun_header fn cn =
 let prod_invoke_fun cn ar t lp instr =
   (* out_start "MLvalue invoke_real(" 1;*)
   (* traitement des args *)
-  out ("MLvalsue "^(List.hd lp));
-  List.iter (fun x -> out (", MLvalues "^x)) (List.tl lp);
+  out ("MLvalsue "^(List.hd lp)); (* PREMIER ARG *)
+  List.iter (fun x -> out (", MLvalues "^x)) (List.tl lp); (* LE RESTE DES ARGS : POUR LA VIRGULE*)
   (*	out_line ") {"; *)
-  prod_instr (true,"",2) instr;
+  prod_instr (true,"",2,0,0) instr;
   (*	 
 	 out_start "}" 1;
 	 out_line ""
@@ -353,7 +358,7 @@ let prod_one ast_li =
 
 (* partie trois *)
 let prod_three ast_li =
-  List.iter (prod_instr (false,"",0) ) ast_li
+  List.iter (prod_instr (false,"",0,0,0) ) ast_li
 ;;
 
 (* point d'entrée *)
@@ -365,18 +370,31 @@ let prod_file filename ast_li =
     try
       let alloc = 8 in
 	header_main filename;
-	(*
-	  header_one filename;
-	*)
+
+
+(* génération des fonctions *)
 	prod_one ast_li;
 	footer_one filename;
-	header_two filename;
-	prod_two ast_li;
+	
+  (* génération des déclaration des gvars *)
+  out (" \n#### DEBUT PARTIE 2\n");
+  out (" \n#### DEBUT PARTIE 2\n");
+  out (" \n#### DEBUT PARTIE 2\n");
+  header_two filename;
+  prod_two ast_li;
 	footer_two filename;
+
+  (* génération du main et des init des gvars *)
+  out ( "\n#### DEBUT PARTIE 3\n");
+  out ( "\n#### DEBUT PARTIE 3\n");
+  out ( "\n#### DEBUT PARTIE 3\n");
+
 	header_three filename;
 	fun_entry_point filename alloc;
 	prod_three ast_li;
 	fun_exit_point filename alloc;
+
+  (* fin *)
 	footer_three filename;
 	footer_main filename;
 	close_out oc
