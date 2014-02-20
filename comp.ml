@@ -17,7 +17,7 @@
  *   auteur : Emmanuel Chailloux                                        *
  *                                                                      *
  ************************************************************************)
-
+open Display;;
 open Types;;
 open Alex;;
 open Asyn;;
@@ -28,6 +28,7 @@ open Env_trans;;
 open Lift;;
 open Trans;;
 open Prod;;  (* ici ce sera un lien sur prodjava *)
+
 
 (* des symboles globaux bien utiles par la suite *)
 
@@ -107,6 +108,7 @@ let compile filename suffix =
     begin 
       close_in ic;
       instructions:= List.rev (!instructions);
+      if !verbose_mode then display_list "dump.dot" (flat !instructions);
       prod_file filename (flat !instructions)
     end
   | x -> (close_in ic; raise x)

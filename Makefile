@@ -13,15 +13,15 @@ NAME=java
 
 CIBLES=intertypeur intereval ml2$(NAME)
 
-SRCS =  util.ml types.ml  alex.ml asyn.ml  typeur.ml env_typeur.ml intertypeur.ml eval.ml env_eval.ml intereval.ml env_trans.ml lift.ml langinter.ml trans.ml prod.ml comp.ml 
+SRCS =  util.ml types.ml  alex.ml asyn.ml  typeur.ml env_typeur.ml intertypeur.ml eval.ml env_eval.ml intereval.ml env_trans.ml lift.ml langinter.ml trans.ml prod.ml comp.ml display.ml
 
 IOBJS =  util.cmo types.cmo
-SOBJS = alex.cmo  asyn.cmo  typeur.cmo env_typeur.cmo 
+SOBJS = alex.cmo  asyn.cmo  typeur.cmo env_typeur.cmo display.cmo
 
 TOBJS = $(IOBJS) $(SOBJS)
 EOBJS = $(TOBJS) eval.cmo env_eval.cmo 
 
-COBJS = env_trans.cmo lift.cmo langinter.cmo trans.cmo prod.cmo comp.cmo 
+COBJS = env_trans.cmo lift.cmo langinter.cmo trans.cmo prod.cmo comp.cmo
 cible: $(CIBLES)
 
 intertypeur: $(IOBJS) alex.ml asyn.ml  asyn.cmi $(TOBJS)
@@ -67,37 +67,41 @@ depend:
 	$(CAMLDEP) $(SRCS)) > Makefile
 
 ### DEPENDENCIES: automatically generated. Do not edit
-alex.cmo: asyn.cmi util.cmo 
-alex.cmx: asyn.cmx util.cmx 
-asyn.cmo: types.cmo util.cmo asyn.cmi 
-asyn.cmx: types.cmx util.cmx asyn.cmi 
-typeur.cmo: types.cmo util.cmo 
-typeur.cmx: types.cmx util.cmx 
-env_typeur.cmo: alex.cmo asyn.cmi types.cmo typeur.cmo util.cmo 
-env_typeur.cmx: alex.cmx asyn.cmx types.cmx typeur.cmx util.cmx 
-intertypeur.cmo: alex.cmo asyn.cmi env_typeur.cmo types.cmo typeur.cmo \
-    util.cmo 
-intertypeur.cmx: alex.cmx asyn.cmx env_typeur.cmx types.cmx typeur.cmx \
-    util.cmx 
-eval.cmo: types.cmo 
-eval.cmx: types.cmx 
-env_eval.cmo: env_typeur.cmo eval.cmo types.cmo typeur.cmo 
-env_eval.cmx: env_typeur.cmx eval.cmx types.cmx typeur.cmx 
-intereval.cmo: alex.cmo asyn.cmi env_eval.cmo env_typeur.cmo eval.cmo \
-    intertypeur.cmo types.cmo typeur.cmo 
-intereval.cmx: alex.cmx asyn.cmx env_eval.cmx env_typeur.cmx eval.cmx \
-    intertypeur.cmx types.cmx typeur.cmx 
-env_trans.cmo: types.cmo 
-env_trans.cmx: types.cmx 
-lift.cmo: env_trans.cmo types.cmo typeur.cmo 
-lift.cmx: env_trans.cmx types.cmx typeur.cmx 
-langinter.cmo: types.cmo 
-langinter.cmx: types.cmx 
-trans.cmo: env_trans.cmo langinter.cmo types.cmo typeur.cmo util.cmo 
-trans.cmx: env_trans.cmx langinter.cmx types.cmx typeur.cmx util.cmx 
-prod.cmo: env_trans.cmo env_typeur.cmo langinter.cmo types.cmo typeur.cmo 
-prod.cmx: env_trans.cmx env_typeur.cmx langinter.cmx types.cmx typeur.cmx 
-comp.cmo: alex.cmo asyn.cmi env_trans.cmo env_typeur.cmo intertypeur.cmo \
-    lift.cmo prod.cmo trans.cmo types.cmo typeur.cmo 
-comp.cmx: alex.cmx asyn.cmx env_trans.cmx env_typeur.cmx intertypeur.cmx \
-    lift.cmx prod.cmx trans.cmx types.cmx typeur.cmx 
+util.cmo :
+util.cmx :
+types.cmo :
+types.cmx :
+alex.cmo : util.cmo asyn.cmi
+alex.cmx : util.cmx asyn.cmx
+asyn.cmo : util.cmo types.cmo asyn.cmi
+asyn.cmx : util.cmx types.cmx asyn.cmi
+typeur.cmo : util.cmo types.cmo
+typeur.cmx : util.cmx types.cmx
+env_typeur.cmo : util.cmo typeur.cmo types.cmo asyn.cmi alex.cmo
+env_typeur.cmx : util.cmx typeur.cmx types.cmx asyn.cmx alex.cmx
+intertypeur.cmo : util.cmo typeur.cmo types.cmo env_typeur.cmo asyn.cmi \
+    alex.cmo
+intertypeur.cmx : util.cmx typeur.cmx types.cmx env_typeur.cmx asyn.cmx \
+    alex.cmx
+eval.cmo : types.cmo
+eval.cmx : types.cmx
+env_eval.cmo : typeur.cmo types.cmo eval.cmo env_typeur.cmo
+env_eval.cmx : typeur.cmx types.cmx eval.cmx env_typeur.cmx
+intereval.cmo : typeur.cmo types.cmo intertypeur.cmo eval.cmo env_typeur.cmo \
+    env_eval.cmo asyn.cmi alex.cmo
+intereval.cmx : typeur.cmx types.cmx intertypeur.cmx eval.cmx env_typeur.cmx \
+    env_eval.cmx asyn.cmx alex.cmx
+env_trans.cmo : types.cmo
+env_trans.cmx : types.cmx
+lift.cmo : typeur.cmo types.cmo env_trans.cmo
+lift.cmx : typeur.cmx types.cmx env_trans.cmx
+langinter.cmo : types.cmo
+langinter.cmx : types.cmx
+trans.cmo : util.cmo typeur.cmo types.cmo langinter.cmo env_trans.cmo
+trans.cmx : util.cmx typeur.cmx types.cmx langinter.cmx env_trans.cmx
+prod.cmo : typeur.cmo types.cmo langinter.cmo env_typeur.cmo env_trans.cmo
+prod.cmx : typeur.cmx types.cmx langinter.cmx env_typeur.cmx env_trans.cmx
+comp.cmo : typeur.cmo types.cmo trans.cmo prod.cmo lift.cmo intertypeur.cmo \
+    env_typeur.cmo env_trans.cmo display.cmo asyn.cmi alex.cmo
+comp.cmx : typeur.cmx types.cmx trans.cmx prod.cmx lift.cmx intertypeur.cmx \
+    env_typeur.cmx env_trans.cmx display.cmx asyn.cmx alex.cmx
