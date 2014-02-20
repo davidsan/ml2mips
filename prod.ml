@@ -5,7 +5,7 @@ open Env_trans;;
 open Langinter;;
 let compiler_name = ref "ml2mips";;
 let asm_suffix = ref ".s";;
-let verbose_mode = ref true;;
+let verbose_mode = ref false;;
 
 (* des valeurs pour certains symboles de env_trans *)
 pair_symbol:=",";;
@@ -85,7 +85,7 @@ let header_main s =
 	if !verbose_mode then
 		List.iter out
 			[
-			"# "^ s ^ (!asm_suffix) ^ " engendre par "^(!compiler_name)^"\n";
+			"# "^ s ^ (!asm_suffix) ^ " engendré par "^(!compiler_name)^"\n";
 			]
 ;;
 
@@ -159,6 +159,17 @@ let main_entry_point s alloc =
 ;;
 
 
+let main_print_point s alloc =
+  List.iter out
+    [
+    "\n";
+    "  # Affichage de la valeur du programme ($v0)\n";
+    "  move  $a0, $v0\n";
+    "  li    $v0, 1\n";
+    "  syscall\n";
+    ]
+;;
+
 let main_exit_point s alloc =
   List.iter out
     [
@@ -167,6 +178,7 @@ let main_exit_point s alloc =
     "  lw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
     "  addiu $sp, $sp, "^string_of_int((alloc))^"\n";
     "\n";
+    "  # Termine l'exécution (exit)\n";
     "  li    $v0, 10\n";
     "  syscall\n";
     "  nop\n"
@@ -462,6 +474,7 @@ let prod_file filename ast_li =
 		header_three filename;
 		main_entry_point filename alloc;
 		prod_three ast_li;
+    main_print_point filename alloc;
 		main_exit_point filename alloc;
 		
 		(* fin *)
