@@ -59,13 +59,16 @@ let output_channel = ref stdout;;
 let change_output_channel oc = output_channel := oc;;
 let shift_string = String.make 256 ' ';;
 let out s = output_string !output_channel s;;
-let out_start s nb = out ("\n"^(String.sub shift_string 0 (2 * nb))^s);;
+(* 
+let out_start s nb = out ("\n"^(String.sub shift_string 0 (nb/(nb+1)+2))^s);; 
+*)
+let out_start s nb = out ("\n"^(String.sub shift_string 0 2)^s);; 
 let out_end s nb = out ("\n"^(String.sub shift_string 0 nb)^"}\n");;
 let out_line s = out (s^"\n");;
 
 (* à changer *)
 let out_before (fr, sd, nb) =
-  if sd <>"" then out_start (sd^"   =   ") nb
+  if sd <>"" then out_start ("move "^sd^", ") nb
   else if fr then out_start ("") nb;;
 
 let out_after (fr, sd, nb) =
