@@ -223,12 +223,12 @@ let rec body_env l e t = match e,t with
 
 let mips_range i j = 
     let rec aux n acc =
-      if n <= i then acc else aux (n-1) (n :: acc)
+      if n < i then acc else aux (n-1) (n :: acc)
     in aux j [] ;;
 
 
 let mips_build_args arity = 
-  let r = mips_range 0 arity in
+  let r = mips_range 0 (arity-1) in
   map (function x -> "$a"^string_of_int x ) r
 ;;
 
