@@ -220,7 +220,18 @@ let rec body_env l e t = match e,t with
 | (Straint(e,t),_) -> body_env l e t 
 |    _ -> []
 ;;
- 
+
+let mips_range i j = 
+    let rec aux n acc =
+      if n <= i then acc else aux (n-1) (n :: acc)
+    in aux j [] ;;
+
+
+let mips_build_args arity = 
+  let r = mips_range 0 arity in
+  map (function x -> "$a"^string_of_int x ) r
+;;
+
 (* 
  * fonction principale de traduction des fonctions 
  *   met a` jour l'environnement de traduction
@@ -236,7 +247,8 @@ let translate_fun_decl l =
            if b then add_trans_env (s,(ns,t));
          let arity = count_param e in
          let lparam = name_param e in 
-         let new_lparam = map (fun x -> new_name x) lparam in 
+(*          let new_lparam = map (fun x -> new_name x) lparam in  *)
+         let new_lparam = mips_build_args arity in 
          let body = body_expr e in 
          let _ (* rtype *) = body_type e in 
            let r = FUNCTION(ns,ti,arity, (new_lparam,ti),
