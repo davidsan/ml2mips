@@ -173,7 +173,10 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
 | Straint(e,t) -> translate_expr (gamma,fr,sd,t)  e  
 and 
  open_block  (gamma,sd)  e  = 
-   let v = if sd = "" then new_temp() else new_name sd in   
+   mips_resetsym_tsv;
+ (*   let v = if sd = "" then new_temp() else new_name sd in   
+ *)
+   let v = if sd = "" then mips_gensym_reg_t() else new_name sd in   
    let t = acces_type e in 
    let nt = li_type_of_ml_type t in 
    let i = translate_expr (gamma,false,v,t) e in
