@@ -41,9 +41,9 @@ initial_trans_env:=
 	    "true" ,"MLruntime.MLtrue";
 	    "false","MLruntime.MLfalse";
 	    "+","add";
-	    "-","MLruntime.MLsubint";
-	    "*","MLruntime.MLmulint";
-	    "/","MLruntime.MLdivint";
+	    "-","sub";
+	    "*","mult";
+	    "/","div";
 	    "=","MLruntime.MLequal";
 	    "<","MLruntime.MLltint";
 	    "<=","MLruntime.MLleint";
