@@ -70,6 +70,11 @@ let out_before (fr, sd, nb) =
 	if sd <>"" then out_start ("move  "^sd^", ") nb
 	else if fr then out_start ("") nb;;
 
+(* à changer *)
+let out_before_constant (fr, sd, nb) =
+  if sd <>"" then out_start ("li    "^sd^", ") nb
+  else if fr then out_start ("") nb;;
+
 let out_after (fr, sd, nb) =
 	if sd <>"" then
 		begin
