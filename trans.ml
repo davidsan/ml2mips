@@ -138,8 +138,8 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
     in
      let lit = li_type_of_ml_type t in
      mips_resetsym_reg_a();
-     let (v1,t1,i1) as l1  = open_block (gamma,"",false) e1
-     and (v2,t2,i2) as l2  = open_block (gamma,"",false) e2 in
+     let (v1,t1,i1) as l1  = open_block (gamma,"",false) e2
+     and (v2,t2,i2) as l2  = open_block (gamma,"",false) e1 in
         BLOCK((l1::[l2]), instr_of_expr (fr,sd) 
                            (PRIM((w,lit),[VAR(v1,t1);VAR(v2,t2)]))) 
   end
@@ -193,9 +193,6 @@ and
    let i = translate_expr (gamma,false,v,t) e in
      (v,nt,i)
 ;;
-
-
-
 
 (* quelsques fonctions utilitaires pour connaitre : 
      count_param : le nombre d'arguments
