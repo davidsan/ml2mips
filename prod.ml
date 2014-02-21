@@ -233,7 +233,7 @@ let get_param_type lv =
 
 (* constante *)
 let prod_const c = match c with
-		INT i -> out ("li $v0 "^(string_of_int i)^"")
+		INT i -> out (string_of_int i)
 	| FLOAT f -> out ("new MLdouble("^(string_of_float f)^")")
 	| BOOL b -> out ("new MLbool("^(if b then "true" else "false")^")")
 	| STRING s -> out ("new MLstring("^"\""^s^"\""^")")
