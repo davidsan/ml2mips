@@ -3,6 +3,7 @@ open Typeur;;
 open Env_typeur;;
 open Env_trans;;
 open Langinter;;
+
 let compiler_name = ref "ml2mips";;
 let asm_suffix = ref ".s";;
 let verbose_mode = ref false;;
@@ -39,7 +40,7 @@ let alpha = max_unknown () in
 (
 	List.map build
 		[
-		"true" ,"0"; 
+		"true" ,"0";
 		"false","1";
 		"+","add  ";
 		"-","sub  ";
@@ -61,7 +62,9 @@ let shift_string = String.make 256 ' ';;
 let out s = output_string !output_channel s;;
 (* let out_start s nb = out ("\n"^(String.sub shift_string 0               *)
 (* (nb/(nb+1)+2))^s);;                                                     *)
+
 let out_start s nb = out ("\n"^(String.sub shift_string 0 2)^s);;
+
 let out_end s nb = out ("\n"^(String.sub shift_string 0 nb)^"}\n");;
 let out_line s = out (s^"\n");;
 
@@ -72,8 +75,8 @@ let out_before (fr, sd, nb) =
 
 (* à changer *)
 let out_before_constant (fr, sd, nb) =
-  if sd <>"" then out_start ("li    "^sd^", ") nb
-  else if fr then out_start ("") nb;;
+	if sd <>"" then out_start ("li    "^sd^", ") nb
+	else if fr then out_start ("") nb;;
 
 let out_after (fr, sd, nb) =
 	if sd <>"" then
@@ -154,40 +157,41 @@ let fun_exit_point s alloc =
 ;;
 
 let main_entry_point s alloc =
-  List.iter out
-    [
-    "\n";
-    "  addiu $sp, $sp, "^string_of_int(- (alloc))^"\n";
-    "  sw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
-    "  move  $fp, $sp\n";
-    ]
+	List.iter out
+		[
+		"\n";
+		"  addiu $sp, $sp, "^string_of_int(- (alloc))^"\n";
+		"  sw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
+		"  move  $fp, $sp\n";
+		]
 ;;
 
-
 let main_print_point s alloc =
-  List.iter out
-    [
-    "\n";
-    "  # Affichage de la valeur du programme ($v0)\n";
-    "  move  $a0, $v0\n";
-    "  li    $v0, 1\n";
-    "  syscall\n";
-    ]
+
+let out_print_point () =
+	List.iter out
+		[
+		"\n";
+		"  # Affichage de la valeur du block précédent ($v0)\n";
+		"  move  $a0, $v0\n";
+		"  li    $v0, 1\n";
+		"  syscall\n";
+		]
 ;;
 
 let main_exit_point s alloc =
-  List.iter out
-    [
-    "\n";
-    "  move  $sp, $fp\n";
-    "  lw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
-    "  addiu $sp, $sp, "^string_of_int((alloc))^"\n";
-    "\n";
-    "  # Termine l'exécution (exit)\n";
-    "  li    $v0, 10\n";
-    "  syscall\n";
-    "  nop\n"
-    ]
+	List.iter out
+		[
+		"\n";
+		"  move  $sp, $fp\n";
+		"  lw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
+		"  addiu $sp, $sp, "^string_of_int((alloc))^"\n";
+		"\n";
+		"  # Termine l'exécution (exit)\n";
+		"  li    $v0, 10\n";
+		"  syscall\n";
+		"  nop\n"
+		]
 ;;
 
 (* pas utile *)
@@ -254,17 +258,11 @@ let rec prod_local_var (fr, sd, nb) (v, t) =
 (* instructions *)
 let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 		CONST c ->
-      if !verbose_mode then
-        begin
-    			out ("");
-    			out_start "# <const>" nb;
-          out ("\n");
-        end;
+			if !verbose_mode then	out_start "# <const>\n" nb;
 			out_before_constant (fr, sd, nb);
 			prod_const c;
 			out_after (fr, sd, nb);
-      if !verbose_mode then
-			  out_start "# </const>" nb;
+			if !verbose_mode then out_start "# </const>" nb;
 	| VAR (v, t) ->
 			if (nb = 0) && ( sd = "") then
 				begin
@@ -315,32 +313,18 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			if !verbose_mode then
 				out_start "# </return>\n" nb;
 	| AFFECT (v, i) ->
-			if !verbose_mode then
-				begin
-					out ("");
-					out_start "# <affect>" nb;
-				end;
+			if !verbose_mode then out_start "# <affect>" nb;
 			prod_instr (false, v, nb, regv, regt) i;
-			if !verbose_mode then
-				begin
-					out_start "# </affect>\n" nb;
-				end;
+			if !verbose_mode then out_start "# </affect>\n" nb;
+	
 	| BLOCK(l, i) ->
-			if !verbose_mode then
-				begin
-					out ("");
-					out_start "# <block>" nb;
-				end;
+			if !verbose_mode then out_start "# <block>" nb;
+			
 			(* List.iter (fun (v, t, i) -> prod_local_var (false,"", nb +1) (v,  *)
 			(* t)) l;                                                            *)
-
-      if !verbose_mode then			
 			List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1, regv, regt) i) l;
 			prod_instr (fr, sd, nb +1, regv, regt) i;
-			if !verbose_mode then
-				begin
-					out_start "# </block>\n" nb
-				end;
+			if !verbose_mode then out_start "# </block>\n" nb;
 	| APPLY(i1, i2) ->
 			if !verbose_mode then
 				begin
@@ -363,7 +347,7 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			if !verbose_mode then
 				begin
 					out ("");
-					out_start "# <prim>" nb;
+					out_start "# <prim>\n" nb;
 				end;
 			let ltp = get_param_type instrl in
 			out_before (fr, sd, nb);
@@ -375,8 +359,6 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			List.iter2 (fun x y -> out (", ");
 							prod_instr (false,"", nb +1, regv, regt) x)
 				(List.tl instrl) (List.tl ltp);
-			out "" ;
-			
 			out_after(fr, sd, nb);
 			if !verbose_mode then
 				begin
@@ -395,28 +377,28 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 
 (* UTILE : to clean *)
 let fun_header fn cn =
-
-  if !verbose_mode then
-  	List.iter out
-  		["\n\n";
-  		(* "/**\n"; *)
-  		"# Declaration de la fonction "^fn^"\n";
-  		(* " * vue comme la classe : "^cn^"\n"; " */ \n" *)
-  		]
+	
+	if !verbose_mode then
+		List.iter out
+			["\n\n";
+			(* "/**\n"; *)
+			"# Declaration de la fonction "^fn^"\n";
+			(* " * vue comme la classe : "^cn^"\n"; " */ \n" *)
+			]
 ;;
 
 (* UTILE invocation *)
 let prod_invoke_fun cn ar t lp instr =
 	(* out_start "MLvalue invoke_real(" 1; traitement des args *)
-
-  if !verbose_mode then
-    begin
-	    out ("# Argument(s) pour la fonction "^cn^" : ");
-	    out (""^(List.hd lp)); (* PREMIER ARG *)
-    	List.iter (fun x -> out (", "^x)) (List.tl lp); (* LE RESTE DES ARGS : POUR LA VIRGULE*)
-    	(* out_line ") {"; *)    
-    end;
-  prod_instr (true,"",2,0,0) instr;
+	
+	if !verbose_mode then
+		begin
+			out ("# Argument(s) pour la fonction "^cn^" : ");
+			out (""^(List.hd lp)); (* PREMIER ARG *)
+			List.iter (fun x -> out (", "^x)) (List.tl lp); (* LE RESTE DES ARGS : POUR LA VIRGULE*)
+			(* out_line ") {"; *)
+		end;
+	prod_instr (true,"",2,0,0) instr;
 (* out_start "}" 1; out_line "" *)
 ;;
 
@@ -433,8 +415,8 @@ let prod_fun instr = match instr with
 			out_line "";
 			fun_exit_point "" alloc;
 			
-      if !verbose_mode then
-			  out_line ("# Fin de la fonction "^class_name)
+			if !verbose_mode then
+				out_line ("# Fin de la fonction "^class_name)
 	| _ -> ()
 ;;
 
@@ -457,20 +439,16 @@ let prod_file filename ast_li =
 	try
 		let alloc = 8 in
 		header_main filename;
-    out ("#  .data:\n");
-		out ("#  .text:\n"); 
-    out ("  j main\n");
+		out ("#  .data:\n");
+		out ("#  .text:\n");
+		out ("  j main\n");
 		(* génération des fonctions *)
 		prod_one ast_li;
 		footer_one filename;
 		
-		(* génération des déclaration des gvars *)
-		if !verbose_mode then
-			out ("\n# Partie 2\n");
-		
-(*  header_two filename;
-		prod_two ast_li;
-		footer_two filename; *)
+		(* génération des déclaration des gvars if !verbose_mode then out      *)
+		(* ("\n# Partie 2\n"); header_two filename; prod_two ast_li;           *)
+		(* footer_two filename;                                                *)
 		
 		(* génération du main et des init des gvars *)
 		if !verbose_mode then
@@ -479,7 +457,7 @@ let prod_file filename ast_li =
 		header_three filename;
 		main_entry_point filename alloc;
 		prod_three ast_li;
-    main_print_point filename alloc;
+		main_print_point filename alloc;
 		main_exit_point filename alloc;
 		
 		(* fin *)
