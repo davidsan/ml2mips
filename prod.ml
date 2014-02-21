@@ -260,7 +260,7 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
     			out_start "# <const>" nb;
           out ("\n");
         end;
-			out_before (fr, sd, nb);
+			out_before_constant (fr, sd, nb);
 			prod_const c;
 			out_after (fr, sd, nb);
       if !verbose_mode then
