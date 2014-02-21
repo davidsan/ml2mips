@@ -167,6 +167,15 @@ let main_entry_point s alloc =
 ;;
 
 let main_print_point s alloc =
+	List.iter out
+		[
+		"\n";
+		"  # Affichage de la valeur du programme ($v0)\n";
+		(* " move $a0, $v0\n"; *)
+		"  li    $v0, 1\n";
+		"  syscall\n";
+		]
+;;
 
 let out_print_point () =
 	List.iter out
