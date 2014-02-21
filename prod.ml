@@ -264,6 +264,12 @@ let rec prod_local_var (fr, sd, nb) (v, t) =
 	out_start ("MLvalue "(*(string_of_type t)*)^v^";") nb
 ;;
 
+let contains s1 s2 =
+	let re = Str.regexp_string s2
+	in
+	try ignore (Str.search_forward re s1 0); true
+	with Not_found -> false
+
 (* instructions *)
 let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 		CONST c ->
@@ -359,16 +365,27 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 					out_start "# <prim>\n" nb;
 				end;
 			let ltp = get_param_type instrl in
-			out_before (fr, sd, nb);
-			out (name^" $v0, ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
+			out_start "" nb;
+			out (name^" ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
 			(* premier arg *)
-			prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
-			
+			if (not(contains name "mult" || contains name "div")) then
+				begin
+					prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
+					out (", ");
+				end;
 			(* second arg *)
-			List.iter2 (fun x y -> out (", ");
+			List.iter2 (fun x y ->
 							prod_instr (false,"", nb +1, regv, regt) x)
 				(List.tl instrl) (List.tl ltp);
+			out (", $a0");
 			out_after(fr, sd, nb);
+			
+			if (contains name "mult" || contains name "div") then
+				begin
+					out_start "mflo  " nb;
+					prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
+				end;
+			
 			if !verbose_mode then
 				begin
 					out_start "# </prim>" nb;

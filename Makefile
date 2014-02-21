@@ -31,7 +31,7 @@ intereval: $(IOBJS) alex.ml asyn.ml alex.cmi asyn.cmi $(TOBJS) env_eval.cmo
 	$(CAMLLINK) $@ $(EOBJS) intereval.ml
 
 ml2$(NAME): $(IOBJS) alex.ml asyn.ml alex.cmi asyn.cmi $(TOBJS) $(COBJS)
-	$(CAMLLINK) $@ $(EOBJS)  $(COBJS) maincomp.ml
+	$(CAMLLINK) $@ str.cma $(EOBJS)  $(COBJS) maincomp.ml
 
 #java: prodjava.ml
 #	rm prod.ml
