@@ -50,7 +50,11 @@ and mips_resetsym_reg_t () =
 let mips_reg_a = ref (-1)
 ;;
 let mips_gensym_reg_a () = 
+   	if (!mips_reg_a = 3) then
+   		mips_reg_a := 0;
+
    	mips_reg_a:=!mips_reg_a+1;
+
    	"$a"^(string_of_int !mips_reg_a)
 and mips_resetsym_reg_a () =
 	mips_reg_a:=-1;
