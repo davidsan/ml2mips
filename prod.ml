@@ -38,19 +38,18 @@ let alpha = max_unknown () in
 (
 	List.map build
 		[
-		"true" ,"MLruntime.MLtrue";
-		"false","MLruntime.MLfalse";
-		"+","add";
+		"true" ,"0"; 
+		"false","1";
+		"+","add  ";
 		"-","sub  ";
-		"*","mult";
-		"/","div";
-		"=","MLruntime.MLequal";
-		"<","MLruntime.MLltint";
-		"<=","MLruntime.MLleint";
-		">","MLruntime.MLgtint";
-		">=","MLruntime.MLgeint";
+		"*","mult ";
+		"/","div  ";
+		"=","beq  ";
+		"<","blt  ";
+		"<=","belt ";
+		">","bgt  ";
+		">=","bget ";
 		"^", "MLruntime.MLconcat"
-		
 		]
 )
 ;;
