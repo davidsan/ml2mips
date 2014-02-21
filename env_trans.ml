@@ -80,14 +80,14 @@ and mips_resetsym_reg_v () =
 ;;
 
 let mips_resetsym_tsv () =
-	mips_resetsym_reg_t;
-	mips_resetsym_reg_s;
-	mips_resetsym_reg_v
+	mips_resetsym_reg_t();
+	mips_resetsym_reg_s();
+	mips_resetsym_reg_v()
 ;;
 
 let mips_resetsym_all () =
-	mips_resetsym_tsv;
-	mips_resetsym_reg_a
+	mips_resetsym_tsv();
+	mips_resetsym_reg_a()
 ;;
 
 
