@@ -126,7 +126,7 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
                    failwith ("translate_expr : "^s^" unknown in Binop"))
     in
      let lit = li_type_of_ml_type t in
-     let (v1,t1,i1) as l1  = open_block (gamma,"") e in
+     let (v1,t1,i1) as l1  = open_block (gamma,"",false) e in
         BLOCK([l1], instr_of_expr (fr,sd) 
                            (PRIM((w,lit),[VAR(v1,t1)])))
   end
@@ -137,16 +137,17 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
                    failwith ("translate_expr : "^s^" unknown in Binop"))
     in
      let lit = li_type_of_ml_type t in
-     let (v1,t1,i1) as l1  = open_block (gamma,"") e1
-     and (v2,t2,i2) as l2  = open_block (gamma,"") e2 in
+     mips_resetsym_reg_a();
+     let (v1,t1,i1) as l1  = open_block (gamma,"",false) e1
+     and (v2,t2,i2) as l2  = open_block (gamma,"",false) e2 in
         BLOCK((l1::[l2]), instr_of_expr (fr,sd) 
                            (PRIM((w,lit),[VAR(v1,t1);VAR(v2,t2)]))) 
   end
 | Pair (e1,e2)  -> translate_expr (gamma,fr,sd,t) (Binop(!pair_symbol,e1,e2))
 | Cons (e1,e2)  -> translate_expr (gamma,fr,sd,t) (Binop(!cons_symbol,e1,e2))
-| Cond(e1,e2,e3) -> let (v1,t1,i1) as l1  = open_block (gamma,"") e1 
-                    and (v2,t2,i2) as l2  = open_block (gamma,"") e2
-                    and (v3,t3,i3) as l3  = open_block (gamma,"") e3 in 
+| Cond(e1,e2,e3) -> let (v1,t1,i1) as l1  = open_block (gamma,"", true) e1 
+                    and (v2,t2,i2) as l2  = open_block (gamma,"", true) e2
+                    and (v3,t3,i3) as l3  = open_block (gamma,"", true) e3 in 
                     BLOCK([l1], 
                        IF(VAR(v1,t1),
                           BLOCK([l2], instr_of_expr (fr,sd) (VAR(v2,t2))),
@@ -154,8 +155,8 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
 | Abs(s,e) -> failwith ("translate_expr :  abstraction anonyme")
 | App(e1,e2) -> 
   begin
-   let (v1,t1,i1) as l1  = open_block (gamma,"") e1
-   and (v2,t2,i2) as l2  = open_block (gamma,"") e2 in
+   let (v1,t1,i1) as l1  = open_block (gamma,"", false) e1
+   and (v2,t2,i2) as l2  = open_block (gamma,"", false) e2 in
       BLOCK((l1::[l2]), instr_of_expr (fr,sd) 
                          (APPLY(VAR(v1,t1),VAR(v2,t2)))) 
   end
@@ -165,18 +166,28 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
     begin
       if b then failwith ("recursive definition in no functional value")
       else
-        let (v1,t1,i1) as l1 = open_block (gamma,v) e1 in 
+        let (v1,t1,i1) as l1 = open_block (gamma,v,true) e1 in 
         BLOCK([l1], translate_expr ( (v,(v1,(acces_type e1)))::gamma,
                                       fr,sd,t) e2)
     end
 | Ref e -> translate_expr (gamma,fr,sd,t) (Unop(!ref_symbol,e))
 | Straint(e,t) -> translate_expr (gamma,fr,sd,t)  e  
 and 
- open_block  (gamma,sd)  e  = 
-   mips_resetsym_tsv;
+ open_block  (gamma,sd,regtmp) e =
+   (* mips_resetsym_all(); *)
  (*   let v = if sd = "" then new_temp() else new_name sd in   
  *)
-   let v = if sd = "" then mips_gensym_reg_t() else new_name sd in   
+ 
+   let v = if sd = "" then 
+    begin
+      if regtmp then
+        mips_gensym_reg_t()
+      else
+        mips_gensym_reg_a() 
+    end
+    else 
+    new_name sd 
+    in 
    let t = acces_type e in 
    let nt = li_type_of_ml_type t in 
    let i = translate_expr (gamma,false,v,t) e in
@@ -274,9 +285,20 @@ let translate_nofun_decl v e t =
     add_trans_env (v,(w,t));
     r
 @(
-   if true then 
+   if false then 
      let w2 = new_name "bidon" in 
-     [BLOCK([w2,CONSTTYPE UNITTYPE,CONST UNIT],AFFECT(w2,PRIM(("MLruntime.MLprint", ti),[VAR(w,ALPHA)])))]
+     [BLOCK(
+      [
+      w2,
+      CONSTTYPE UNITTYPE,
+      CONST UNIT
+      ],
+      AFFECT(w2,
+        PRIM(
+          ("MLruntime.MLprint", ti),
+          [VAR(w,ALPHA)])
+      )
+    )]
    else []
 );;
 
