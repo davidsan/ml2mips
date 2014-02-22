@@ -357,6 +357,7 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			out_start "" nb;
 			out (name^" ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
 			(* premier arg *)
+			out ("$a0, ");
 			if (not(contains name "mult" || contains name "div")) then
 				begin
 					prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
@@ -366,7 +367,6 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			List.iter2 (fun x y ->
 							prod_instr (false,"", nb +1, regv, regt) x)
 				(List.tl instrl) (List.tl ltp);
-			out (", $a0");
 			out_after(fr, sd, nb);
 			
 			if (contains name "mult" || contains name "div") then
