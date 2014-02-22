@@ -40,7 +40,7 @@ let alpha = max_unknown () in
 (
 	List.map build
 		[
-		"true" ,"0";
+		"true","0";
 		"false","1";
 		"+","add  ";
 		"-","sub  ";
@@ -48,9 +48,9 @@ let alpha = max_unknown () in
 		"/","div  ";
 		"=","beq  ";
 		"<","blt  ";
-		"<=","belt ";
+		"<=","ble  ";
 		">","bgt  ";
-		">=","bget ";
+		">=","bge  ";
 		"^", "MLruntime.MLconcat"
 		]
 )
