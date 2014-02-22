@@ -263,7 +263,7 @@ let contains s1 s2 =
 (* instructions *)
 let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 		CONST c ->
-			if !verbose_mode then	out_start "# <const>\n" nb;
+			if !verbose_mode then	out_start "# <const>" nb;
 			out_before_constant (fr, sd, nb);
 			prod_const c;
 			out_after (fr, sd, nb);
@@ -351,7 +351,7 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			if !verbose_mode then
 				begin
 					out ("");
-					out_start "# <prim>\n" nb;
+					out_start "# <prim>" nb;
 				end;
 			let ltp = get_param_type instrl in
 			out_start "" nb;
@@ -411,7 +411,7 @@ let prod_invoke_fun cn ar t lp instr =
 	
 	if !verbose_mode then
 		begin
-			out ("# Argument(s) pour la fonction "^cn^" : ");
+			out ("  # Arg(s) pour "^cn^" : ");
 			out (""^(List.hd lp)); (* PREMIER ARG *)
 			List.iter (fun x -> out (", "^x)) (List.tl lp); (* LE RESTE DES ARGS : POUR LA VIRGULE*)
 			(* out_line ") {"; *)
