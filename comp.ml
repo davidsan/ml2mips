@@ -55,7 +55,7 @@ let flat l = List.fold_left (fun x y -> x@y) [] l;;
       
 let rec translate_phrase  phr = match phr with 
   Expr e ->
-    (translate_phrase  (Decl(Let(false,(*new_name*)(decl_name),e))))
+    (translate_phrase  (Decl(Let(false, (* new_name *)decl_name,e))))
 | Decl (Let(b,s,e)) -> 
     if b then 
       initial_typing_env:=(s,Forall([],new_unknown()))::!initial_typing_env;

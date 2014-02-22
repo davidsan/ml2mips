@@ -148,6 +148,7 @@ let fun_exit_point s alloc =
 	List.iter out
 		[
 		"\n";
+		"  move  $v0, $a0\n";
 		"  move  $sp, $fp\n";
 		"  lw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
 		"  addiu $sp, $sp, "^string_of_int((alloc))^"\n";
@@ -171,7 +172,7 @@ let main_print_point s alloc =
 		[
 		"\n";
 		"  # Affichage de la valeur du programme ($v0)\n";
-		(* " move $a0, $v0\n"; *)
+		"  move  $a0, $v0\n";
 		"  li    $v0, 1\n";
 		"  syscall\n";
 		]
@@ -280,9 +281,8 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 				end
 			else
 				begin
-					out_before (fr, sd, nb);
-					out v;
-					(* out_after (fr, sd, nb) *)
+					if sd = "" then
+						out (v)
 				end;
 	| IF(i1, i2, i3) ->
 			if !verbose_mode then
@@ -356,17 +356,20 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			let ltp = get_param_type instrl in
 			out_start "" nb;
 			out (name^" ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
-			(* premier arg *)
-			out ("$a0, ");
 			if (not(contains name "mult" || contains name "div")) then
 				begin
 					prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
-					out (", ");
+					List.iter (fun x -> out (", ");
+									prod_instr (false,"", nb +1, regv, regt) x)
+						(List.rev (List.tl instrl));
+				end
+			else
+				begin
+					prod_instr (false,"", nb +1, regv, regt) (List.hd (List.rev (List.tl(instrl))));
+					List.iter (fun x -> out (", ");
+									prod_instr (false,"", nb +1, regv, regt) x)
+						(List.tl (List.rev (List.tl(instrl))));
 				end;
-			(* second arg *)
-			List.iter2 (fun x y ->
-							prod_instr (false,"", nb +1, regv, regt) x)
-				(List.tl instrl) (List.tl ltp);
 			out_after(fr, sd, nb);
 			
 			if (contains name "mult" || contains name "div") then

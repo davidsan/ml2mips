@@ -86,7 +86,7 @@ let type_pair (t1,t2) = Pair_type(t1,t2);;
  
 let instr_of_expr flags i = match flags with 
   (false,"") -> i
-| (true,"") -> RETURN i
+| (true,"") -> i (* RETURN i *)
 | (false,s) -> AFFECT(s,i)
 | (_,_)  -> failwith "instr_of_expr : cas impossible"
 ;;
@@ -138,10 +138,21 @@ let rec translate_expr (gamma,fr,sd,t)  e  = match e with
     in
      let lit = li_type_of_ml_type t in
      mips_resetsym_reg_a();
-     let (v1,t1,i1) as l1  = open_block (gamma,"",false) e2
-     and (v2,t2,i2) as l2  = open_block (gamma,"",false) e1 in
-        BLOCK((l1::[l2]), instr_of_expr (fr,sd) 
-                           (PRIM((w,lit),[VAR(v1,t1);VAR(v2,t2)]))) 
+     let (v1,t1,i1) as l1  = open_block (gamma,"",false) e2 in
+     let (v2,t2,i2) as l2  = open_block (gamma,"",false) e1 in
+        if is_decl_name sd then
+          BLOCK((l1::[l2]), instr_of_expr (fr, "") 
+                           (PRIM((w,lit),[VAR("$v0",t1);VAR(v1,t1);VAR(v2,t2)])))
+        else 
+          begin
+            if sd="" then
+            BLOCK((l1::[l2]), instr_of_expr (fr, "") 
+                               (PRIM((w,lit),[VAR("$v0",t1);VAR(v1,t1);VAR(v2,t2)]))) 
+            else (* return, pas de destination *)
+            BLOCK((l1::[l2]), instr_of_expr (fr, sd) 
+                               (PRIM((w,lit),[VAR(sd,t1);VAR(v1,t1);VAR(v2,t2)]))) 
+          end
+
   end
 | Pair (e1,e2)  -> translate_expr (gamma,fr,sd,t) (Binop(!pair_symbol,e1,e2))
 | Cons (e1,e2)  -> translate_expr (gamma,fr,sd,t) (Binop(!cons_symbol,e1,e2))
@@ -183,7 +194,7 @@ and
       if regtmp then
         mips_gensym_reg_t()
       else
-        mips_gensym_reg_a() 
+        mips_gensym_reg_t() 
     end
     else 
     new_name sd 

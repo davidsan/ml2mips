@@ -39,6 +39,9 @@ let gensym_var =
 let mips_reg_t = ref (-1)
 ;;
 let mips_gensym_reg_t () = 
+	if (!mips_reg_t = 9) then
+		mips_reg_t := -1;
+
    	mips_reg_t:=!mips_reg_t+1;
    	"$t"^(string_of_int !mips_reg_t)
 and mips_resetsym_reg_t () =
