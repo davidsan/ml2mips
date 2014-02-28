@@ -268,8 +268,6 @@ let translate_fun_decl l =
          let ti = li_type_of_ml_type t in
            if b then add_trans_env (s,(ns,t));
          let arity = count_param e in
-         let lparam = name_param e in 
-(*          let new_lparam = map (fun x -> new_name x) lparam in  *)
          let new_lparam = mips_build_args arity in 
          let body = body_expr e in 
          let _ (* rtype *) = body_type e in 
@@ -291,24 +289,8 @@ let translate_nofun_decl v e t =
   let r = [VAR (w,ti);translate_expr (gamma,false,w,t) e]
   in 
     add_trans_env (v,(w,t));
-    r
-@(
-   if false then 
-     let w2 = new_name "bidon" in 
-     [BLOCK(
-      [
-      w2,
-      CONSTTYPE UNITTYPE,
-      CONST UNIT
-      ],
-      AFFECT(w2,
-        PRIM(
-          ("MLruntime.MLprint", ti),
-          [VAR(w,ALPHA)])
-      )
-    )]
-   else []
-);;
+    r@[]
+  ;;
 
 let translate_decl b s e t = 
   if is_abs e then translate_fun_decl [Decl(Let(b,s,e))]

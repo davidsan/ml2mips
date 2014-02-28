@@ -147,7 +147,6 @@ let fun_exit_point s alloc =
 	List.iter out
 		[
 		"\n";
-		"  move  $v0, $a0\n";
 		"  move  $sp, $fp\n";
 		"  lw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
 		"  addiu $sp, $sp, "^string_of_int((alloc))^"\n";
@@ -298,14 +297,9 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 			prod_instr (fr, sd, nb +1, regv, regt) i2 ;
 			out_start "else" (nb);
 			prod_instr (fr, sd, nb +1, regv, regt) i3;
-			if !verbose_mode then
-				begin
-					out_start "# </if>" nb;
-				end;
 	| RETURN i ->
 			if !verbose_mode then
 				begin
-					out ("  ");
 					out_start "# <return>" nb;
 					()
 				end;
@@ -352,7 +346,6 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 					out ("");
 					out_start "# <prim>" nb;
 				end;
-			let ltp = get_param_type instrl in
 			out_start "" nb;
 			out (name^" ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
 			if (not(contains name "mult" || contains name "div")) then
@@ -369,7 +362,6 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 									prod_instr (false,"", nb +1, regv, regt) x)
 						(List.tl (List.rev (List.tl(instrl))));
 				end;
-			out_after(fr, sd, nb);
 			
 			if (contains name "mult" || contains name "div") then
 				begin
