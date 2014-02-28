@@ -69,11 +69,15 @@ let out_line s = out (s^"\n");;
 
 (* à changer *)
 let out_before (fr, sd, nb) =
-	if sd <>"" then out_start ("move  "^sd^", ") nb
-	else if fr then out_start ("") nb;;
+	(* if sd = "MIPS_JAL" then out_start ("jal   ") nb *)
+	(* else *)
+		if sd <>"" then out_start ("move  "^sd^", ") nb
+		else if fr then out_start ("") nb
+;;
 
 (* à changer *)
 let out_before_constant (fr, sd, nb) =
+	(* if sd <> "MIPS_JAL" then *)
 	if sd <>"" then out_start ("li    "^sd^", ") nb
 	else if fr then out_start ("") nb;;
 
@@ -244,12 +248,13 @@ let prod_const c = match c with
 	| BOOL b -> out ("new MLbool("^(if b then "true" else "false")^")")
 	| STRING s -> out ("new MLstring("^"\""^s^"\""^")")
 	| EMPTYLIST -> out ("MLruntime.MLnil")
-	| UNIT -> out ("MLruntime.MLlrp")
+	| UNIT -> ()
 ;;
 
 (* variable locale *)
 let rec prod_local_var (fr, sd, nb) (v, t) =
-	out_start ("MLvalue "(*(string_of_type t)*)^v^";") nb
+	(* out_start ("move "^v^", "^mips_gensym_reg_a()) nb; *)
+	()
 ;;
 
 let contains s1 s2 =
@@ -259,7 +264,7 @@ let contains s1 s2 =
 	with Not_found -> false
 
 (* instructions *)
-let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
+let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 		CONST c ->
 			if !verbose_mode then	out_start "# <const>" nb;
 			out_before_constant (fr, sd, nb);
@@ -281,29 +286,29 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 				begin
 					if sd = "" then
 						out (v)
-				end;
+					else if sd = "MIPS_ARGS" then
+						if not (contains v "$") then
+						out_start ("jal   "^v) nb
+		end;
 	| IF(i1, i2, i3) ->
-			if !verbose_mode then
-				begin
-					out ("");
-					out_start "# <if>" nb;
-				end;
+			if !verbose_mode then out_start "# <if>" nb;
 			out_start "if (" nb;
 			out ("((MLbool)");
-			prod_instr (false,"", nb, regv, regt) i1 ;
+			prod_instr (false,"", nb, au, mn) i1 ;
 			out ")";
 			out".MLaccess()";
 			out ")";
-			prod_instr (fr, sd, nb +1, regv, regt) i2 ;
+			prod_instr (fr, sd, nb +1, au, mn) i2 ;
 			out_start "else" (nb);
-			prod_instr (fr, sd, nb +1, regv, regt) i3;
+			prod_instr (fr, sd, nb +1, au, mn) i3;
+			if !verbose_mode then out_start "# </if>" nb;
 	| RETURN i ->
 			if !verbose_mode then
 				begin
 					out_start "# <return>" nb;
 					()
 				end;
-			prod_instr (true,"", nb, regv, regt) i;
+			prod_instr (true, sd, nb, au, mn) i;
 			
 			(* out_start "# copie du dernier registre connu de la dernière       *)
 			(* instruction" nb; out_start "# dans le registre $v0 \n" nb;        *)
@@ -311,16 +316,23 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 				out_start "# </return>\n" nb;
 	| AFFECT (v, i) ->
 			if !verbose_mode then out_start "# <affect>" nb;
-			prod_instr (false, v, nb, regv, regt) i;
+			prod_instr (false, v, nb, au, mn) i;
 			if !verbose_mode then out_start "# </affect>\n" nb;
 	
 	| BLOCK(l, i) ->
 			if !verbose_mode then out_start "# <block>" nb;
 			
-			(* List.iter (fun (v, t, i) -> prod_local_var (false,"", nb +1) (v,  *)
-			(* t)) l;                                                            *)
-			List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1, regv, regt) i) l;
-			prod_instr (fr, sd, nb +1, regv, regt) i;
+			List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1, au, mn) i) l;
+			if not fr then
+				begin
+					List.iter (fun (v, t, i) ->
+									if not mn then
+										prod_local_var (false,"", nb +1) (v, t)
+						) l;
+				end;
+			prod_instr (fr, sd, nb +1, au, mn) i;
+			
+
 			if !verbose_mode then out_start "# </block>\n" nb;
 	| APPLY(i1, i2) ->
 			if !verbose_mode then
@@ -328,14 +340,14 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 					out ("");
 					out_start "# <apply>" nb;
 				end;
+			(* prod_instr (false,"", nb, au, mn) i2; *)
 			out_before(fr, sd, nb);
-			out ("((MLfun)");
-			prod_instr (false,"", nb, regv, regt) i1;
-			out ")";
-			out ".invoke(";
-			prod_instr (false,"", nb, regv, regt) i2;
-			out")";
-			out_after(fr, sd, nb);
+			(* out ("((MLfun)"); *)
+			prod_instr (false,"", nb, au, mn) i1;
+			(* out ")"; *)
+			(* out ".invoke("; *)
+			(* out")"; *)
+			(* out_after(fr, sd, nb); *)
 			if !verbose_mode then
 				begin
 					out_start "# </apply>" nb;
@@ -346,27 +358,28 @@ let rec prod_instr (fr, sd, nb, regv, regt) instr = match instr with
 					out ("");
 					out_start "# <prim>" nb;
 				end;
+			out_after(fr, sd, nb);
 			out_start "" nb;
 			out (name^" ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
 			if (not(contains name "mult" || contains name "div")) then
 				begin
-					prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
+					prod_instr (false,"", nb +1, au, mn) (List.hd instrl);
 					List.iter (fun x -> out (", ");
-									prod_instr (false,"", nb +1, regv, regt) x)
+									prod_instr (false,"", nb +1, au, mn) x)
 						(List.rev (List.tl instrl));
 				end
 			else
 				begin
-					prod_instr (false,"", nb +1, regv, regt) (List.hd (List.rev (List.tl(instrl))));
+					prod_instr (false,"", nb +1, au, mn) (List.hd (List.rev (List.tl (List.tl(instrl)))));
 					List.iter (fun x -> out (", ");
-									prod_instr (false,"", nb +1, regv, regt) x)
+									prod_instr (false,"", nb +1, au, mn) x)
 						(List.tl (List.rev (List.tl(instrl))));
 				end;
 			
 			if (contains name "mult" || contains name "div") then
 				begin
 					out_start "mflo  " nb;
-					prod_instr (false,"", nb +1, regv, regt) (List.hd instrl);
+					prod_instr (false,"", nb +1, au, mn) (List.hd instrl);
 				end;
 			
 			if !verbose_mode then
@@ -407,7 +420,7 @@ let prod_invoke_fun cn ar t lp instr =
 			List.iter (fun x -> out (", "^x)) (List.tl lp); (* LE RESTE DES ARGS : POUR LA VIRGULE*)
 			(* out_line ") {"; *)
 		end;
-	prod_instr (true,"",2,0,0) instr;
+	prod_instr (true,"",2,0, false) instr;
 (* out_start "}" 1; out_line "" *)
 ;;
 
@@ -436,7 +449,7 @@ let prod_one ast_li =
 
 (* partie trois *)
 let prod_three ast_li =
-	List.iter (prod_instr (false,"",0,0,0) ) ast_li
+	List.iter (prod_instr (false,"",0,0, true) ) ast_li
 ;;
 
 (* point d'entrée *)
