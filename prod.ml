@@ -7,7 +7,6 @@ open Langinter;;
 let compiler_name = ref "ml2mips";;
 let asm_suffix = ref ".s";;
 let verbose_mode = ref false;;
-let debug_mode = ref false;;
 
 (* des valeurs pour certains symboles de env_trans *)
 pair_symbol:=",";;
