@@ -54,7 +54,7 @@ let mips_reg_a = ref (-1)
 ;;
 let mips_gensym_reg_a () = 
    	if (!mips_reg_a = 3) then
-   		mips_reg_a := 0;
+   		mips_reg_a := -1;
 
    	mips_reg_a:=!mips_reg_a+1;
 
@@ -79,6 +79,10 @@ and mips_resetsym_reg_s () =
 let mips_reg_v = ref (-1)
 ;;
 let mips_gensym_reg_v () = 
+
+   	if (!mips_reg_v = 0) then
+   		mips_reg_v := -1;
+
    	mips_reg_v:=!mips_reg_v+1;
    	"$v"^(string_of_int !mips_reg_v)
 and mips_resetsym_reg_v () =
@@ -86,15 +90,19 @@ and mips_resetsym_reg_v () =
 	""
 ;;
 
+let mips_getsym_reg (name, index) =
+	"$"^name^string_of_int(index)
+;;
+
 let mips_resetsym_tsv () =
-	mips_resetsym_reg_t();
-	mips_resetsym_reg_s();
-	mips_resetsym_reg_v()
+	ignore(mips_resetsym_reg_t());
+	ignore(mips_resetsym_reg_s());
+	ignore(mips_resetsym_reg_v())
 ;;
 
 let mips_resetsym_all () =
 	mips_resetsym_tsv();
-	mips_resetsym_reg_a()
+	ignore(mips_resetsym_reg_a())
 ;;
 
 
