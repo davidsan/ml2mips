@@ -6,7 +6,7 @@ open Langinter;;
 
 let compiler_name = ref "ml2mips";;
 let asm_suffix = ref ".s";;
-let verbose_mode = ref false;;
+let verbose_mode = ref true;;
 
 (* des valeurs pour certains symboles de env_trans *)
 pair_symbol:=",";;
@@ -67,7 +67,7 @@ let out_start s nb = out ("\n"^(String.sub shift_string 0 (2))^s);;
 let out_end s nb = out ("\n"^(String.sub shift_string 0 nb)^"}\n");;
 let out_line s = out (s^"\n");;
 
-(* à changer *)
+(* a changer *)
 let out_before (fr, sd, nb) =
 	(* if sd = "MIPS_JAL" then out_start ("jal   ") nb *)
 	(* else *)
@@ -75,7 +75,7 @@ let out_before (fr, sd, nb) =
 		else if fr then out_start ("") nb
 ;;
 
-(* à changer *)
+(* a changer *)
 let out_before_constant (fr, sd, nb) =
 	(* if sd <> "MIPS_JAL" then *)
 	if sd <>"" then out_start ("li    "^sd^", ") nb
@@ -96,7 +96,7 @@ let header_main s =
 	if !verbose_mode then
 		List.iter out
 			[
-			"# "^ s ^ (!asm_suffix) ^ " engendré par "^(!compiler_name)^"\n";
+			"# "^ s ^ (!asm_suffix) ^ " engendre par "^(!compiler_name)^"\n";
 			]
 ;;
 
@@ -188,7 +188,7 @@ let main_exit_point s alloc =
 		"  lw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
 		"  addiu $sp, $sp, "^string_of_int((alloc))^"\n";
 		"\n";
-		"  # Termine l'exécution (exit)\n";
+		"  # Termine l'execution (exit)\n";
 		"  li    $v0, 10\n";
 		"  syscall\n";
 		"  nop\n"
@@ -320,7 +320,7 @@ let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 				end;
 			prod_instr (true, sd, nb, au, mn) i;
 			
-			(* out_start "# copie du dernier registre connu de la dernière       *)
+			(* out_start "# copie du dernier registre connu de la derniere       *)
 			(* instruction" nb; out_start "# dans le registre $v0 \n" nb;        *)
 			if !verbose_mode then
 				out_start "# </return>\n" nb;
@@ -462,7 +462,7 @@ let prod_three ast_li =
 	List.iter (prod_instr (false,"",0,0, true) ) ast_li
 ;;
 
-(* point d'entrée *)
+(* point d'entree *)
 let prod_file filename ast_li =
 	let obj_name = filename ^ !asm_suffix in
 	let oc = open_out obj_name in
@@ -474,15 +474,15 @@ let prod_file filename ast_li =
 		out ("#  .data:\n");
 		out ("#  .text:\n");
 		out ("  j main\n");
-		(* génération des fonctions *)
+		(* generation des fonctions *)
 		prod_one ast_li;
 		footer_one filename;
 		
-		(* génération des déclaration des gvars if !verbose_mode then out      *)
+		(* generation des declaration des gvars if !verbose_mode then out      *)
 		(* ("\n# Partie 2\n"); header_two filename; prod_two ast_li;           *)
 		(* footer_two filename;                                                *)
 		
-		(* génération du main et des init des gvars *)
+		(* generation du main et des init des gvars *)
 		if !verbose_mode then
 			out ("\n# Partie 3\n");
 		
