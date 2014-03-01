@@ -135,7 +135,7 @@ let rec unify_types (t1,t2) =
 
 let type_const = function
    Int _ -> Const_type Int_type
- | Float _ -> Const_type Float_type
+ | Float _ -> Const_type Int_type
  | String _ -> Const_type String_type
  | Bool _ ->  Const_type Bool_type
  | Unit ->  Const_type Unit_type
