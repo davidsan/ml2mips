@@ -30,6 +30,12 @@ open Langinter;;
 *)
 
 
+let contains s1 s2 =
+  let re = Str.regexp_string s2
+  in
+  try ignore (Str.search_forward re s1 0); true
+  with Not_found -> false
+;;
 
 let decl_name = decl_symbol;;
 
@@ -201,7 +207,8 @@ and
     else 
       new_name sd 
   in 
-  let i = translate_expr (gamma,false, sd,t) e in
+  let i = if (contains v "$") then translate_expr (gamma,false, sd,t) e 
+          else translate_expr (gamma, false, mips_gensym_reg_a(),t) e in
   (v,nt,i)
 ;;
 

@@ -257,12 +257,16 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       end
     else
       begin
+    (* on filtre avec $a pour trouver tout ce qu'il faut lw (variables)  *)
+    (* il faut qu'il contienne un '$'                                    *)
+    if ((contains sd "$a") && (sd <> v) && (not (contains v !module_name))) then
+    	out_start("lw    "^sd^", "^v) nb;
 	if sd = "" then
 	  out (v)
 	else if sd = "MIPS_ARGS" then
 	  if not (contains v "$v" || contains v "$a")  then
 	    out_start ("jal   "^v) nb
-      end;
+    	end
   | IF (i1, i2, i3) ->
     if !verbose_mode then out_start "# <if>" nb;
 
@@ -301,7 +305,6 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
 
   | BLOCK(l, i) ->
     if !verbose_mode then out_start "# <block>" nb;
-
     List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1) i) l;
     prod_instr (fr, sd, nb +1) i;
 
