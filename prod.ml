@@ -249,9 +249,9 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
     	end
     else (* variable globale (exemple : a1) *)
     	begin
-    	out_before_constant (fr, "$a0", nb); (* load in tmp register *)
+    	out_before_constant (fr, "$t0", nb); (* load in tmp register *)
     	prod_const c;
-    	out_start ("sw    $a0, "^sd) nb;
+    	out_start ("sw    $t0, "^sd) nb;
     	out_after (fr, sd, nb);
     	end;
     if !verbose_mode then out_start "# </const>" nb;
