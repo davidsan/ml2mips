@@ -140,8 +140,8 @@ let main_entry_point s alloc =
       "  addiu $sp, $sp, "^string_of_int(- (alloc))^"\n";
       "  sw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
       "  move  $fp, $sp\n";
-      "  move  $v0, $zero\n"; (* Pour compatibilité MARS / SPIM sur empty.s *)
-      (* Un programme vide rendra zéro par convention pour représenter unit *)
+      "  move  $v0, $zero\n"; (* Pour compatibilite MARS / SPIM sur empty.s *)
+      (* Un programme vide rendra zero par convention pour representer unit *)
     ]
 ;;
 
@@ -273,7 +273,7 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
     (* generation de labels                                              *)
     let (elsel, endifl) as if_labels = new_cond();
     in
-    (* la condition a déjà été compilé vers le registre $v0              *)
+    (* la condition a deja ete compile vers le registre $v0              *)
     out_start "beqz  " nb; (* branch on equal zero *)
     prod_instr (false,"", nb) i1 ; (* $v0 *)
     out (", "^elsel^"\n");
