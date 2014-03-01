@@ -293,14 +293,11 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       end;
   | IF (i1, i2, i3) ->
     if !verbose_mode then out_start "# <if>" nb;
-    (* generer un label pour l'alternant et le conséquent et la fin du         *)
-    (* consequent                                                              *)
 
+    (* generation de labels                                              *)
     let (elsel, endifl) as if_labels = new_cond();
     in
-
-    (* début de l'alternative la condition a déjà été compilé vers le    *)
-    (* registre $v0                                                      *)
+    (* la condition a déjà été compilé vers le registre $v0              *)
     out_start "beqz  " nb; (* branch on equal zero *)
     prod_instr (false,"", nb) i1 ; (* $v0 *)
     out (", "^elsel^"\n");
@@ -320,9 +317,6 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
 	()
       end;
     prod_instr (true, sd, nb) i;
-
-    (* out_start "# copie du dernier registre connu de la derniere       *)
-       (* instruction" nb; out_start "# dans le registre $v0 \n" nb;        *)
     if !verbose_mode then
       out_start "# </return>\n" nb;
   | AFFECT (v, i) ->
