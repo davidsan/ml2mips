@@ -39,17 +39,17 @@ let alpha = max_unknown () in
 (
 	List.map build
 		[
-		"true","0";
-		"false","1";
+		"true","1";
+		"false","0";
 		"+","add  ";
 		"-","sub  ";
 		"*","mult ";
 		"/","div  ";
 		"=","beq  ";
-		"<","blt  ";
-		"<=","ble  ";
-		">","bgt  ";
-		">=","bge  ";
+		"<","slt  ";
+		"<=","sle  ";
+		">","sgt  ";
+		">=","sge  ";
 		"^", "MLruntime.MLconcat"
 		]
 )
@@ -290,17 +290,27 @@ let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 						if not (contains v "$") then
 						out_start ("jal   "^v) nb
 		end;
-	| IF(i1, i2, i3) ->
+	| IF (i1, i2, i3) ->
 			if !verbose_mode then out_start "# <if>" nb;
-			out_start "if (" nb;
-			out ("((MLbool)");
-			prod_instr (false,"", nb, au, mn) i1 ;
-			out ")";
-			out".MLaccess()";
-			out ")";
-			prod_instr (fr, sd, nb +1, au, mn) i2 ;
-			out_start "else" (nb);
-			prod_instr (fr, sd, nb +1, au, mn) i3;
+			(* generer un label pour l'alternant et le conséquent 
+				et la fin du consequent*)
+
+			let (elsel, endifl) as if_labels = new_cond();
+		in
+
+			(* début de l'alternative *)
+			(* la condition a déjà été compilé vers le registre $v0 *)
+			out_start "beqz  " nb; (* branch on equal zero *)
+			prod_instr (false,"", nb, au, mn) i1 ; (* $v0 *)
+			out (", "^elsel^"\n");
+			(* consequent *)
+			prod_instr (fr, "garbage", nb +1, au, mn) i2 ;
+			out_start ("j "^endifl) nb;
+			out ("\n"^elsel^":");
+			(* alternant *)
+			prod_instr (fr, "garbage", nb +1, au, mn) i3;
+			(* fin de l'alternative *)
+			out ("\n"^endifl^":");
 			if !verbose_mode then out_start "# </if>" nb;
 	| RETURN i ->
 			if !verbose_mode then
