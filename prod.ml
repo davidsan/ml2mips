@@ -6,7 +6,7 @@ open Langinter;;
 
 let compiler_name = ref "ml2mips";;
 let asm_suffix = ref ".s";;
-let verbose_mode = ref true;;
+let verbose_mode = ref false;;
 
 (* des valeurs pour certains symboles de env_trans *)
 pair_symbol:=",";;
@@ -69,10 +69,9 @@ let out_line s = out (s^"\n");;
 
 (* a changer *)
 let out_before (fr, sd, nb) =
-	(* if sd = "MIPS_JAL" then out_start ("jal   ") nb *)
-	(* else *)
-		if sd <>"" then out_start ("move  "^sd^", ") nb
-		else if fr then out_start ("") nb
+	(* if sd = "MIPS_JAL" then out_start ("jal ") nb else *)
+	if sd <>"" then out_start ("move  "^sd^", ") nb
+	else if fr then out_start ("") nb
 ;;
 
 (* a changer *)
@@ -166,6 +165,8 @@ let main_entry_point s alloc =
 		"  addiu $sp, $sp, "^string_of_int(- (alloc))^"\n";
 		"  sw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
 		"  move  $fp, $sp\n";
+		"  move  $v0, $zero\n"; (* Pour compatibilité MARS / SPIM sur empty.s *)
+		(* Un programme vide rendra zéro par convention pour représenter unit *)
 		]
 ;;
 
@@ -288,18 +289,18 @@ let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 						out (v)
 					else if sd = "MIPS_ARGS" then
 						if not (contains v "$") then
-						out_start ("jal   "^v) nb
-		end;
+							out_start ("jal   "^v) nb
+				end;
 	| IF (i1, i2, i3) ->
 			if !verbose_mode then out_start "# <if>" nb;
-			(* generer un label pour l'alternant et le conséquent 
-				et la fin du consequent*)
-
+			(* generer un label pour l'alternant et le conséquent et la fin du         *)
+			(* consequent                                                              *)
+			
 			let (elsel, endifl) as if_labels = new_cond();
-		in
-
-			(* début de l'alternative *)
-			(* la condition a déjà été compilé vers le registre $v0 *)
+			in
+			
+			(* début de l'alternative la condition a déjà été compilé vers le    *)
+			(* registre $v0                                                      *)
 			out_start "beqz  " nb; (* branch on equal zero *)
 			prod_instr (false,"", nb, au, mn) i1 ; (* $v0 *)
 			out (", "^elsel^"\n");
@@ -326,7 +327,10 @@ let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 				out_start "# </return>\n" nb;
 	| AFFECT (v, i) ->
 			if !verbose_mode then out_start "# <affect>" nb;
-			prod_instr (false, v, nb, au, mn) i;
+			if (contains v "value_") then
+				prod_instr (false, "$v0", nb, au, mn) i
+			else
+				prod_instr (false, v, nb, au, mn) i;
 			if !verbose_mode then out_start "# </affect>\n" nb;
 	
 	| BLOCK(l, i) ->
@@ -342,26 +346,12 @@ let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 				end;
 			prod_instr (fr, sd, nb +1, au, mn) i;
 			
-
 			if !verbose_mode then out_start "# </block>\n" nb;
 	| APPLY(i1, i2) ->
-			if !verbose_mode then
-				begin
-					out ("");
-					out_start "# <apply>" nb;
-				end;
-			(* prod_instr (false,"", nb, au, mn) i2; *)
+			if !verbose_mode then out_start "# <apply>" nb;
 			out_before(fr, sd, nb);
-			(* out ("((MLfun)"); *)
 			prod_instr (false,"", nb, au, mn) i1;
-			(* out ")"; *)
-			(* out ".invoke("; *)
-			(* out")"; *)
-			(* out_after(fr, sd, nb); *)
-			if !verbose_mode then
-				begin
-					out_start "# </apply>" nb;
-				end;
+			if !verbose_mode then out_start "# </apply>" nb;
 	| PRIM ((name, typ), instrl) ->
 			if !verbose_mode then
 				begin
@@ -370,26 +360,25 @@ let rec prod_instr (fr, sd, nb, au, mn) instr = match instr with
 				end;
 			out_after(fr, sd, nb);
 			out_start "" nb;
-			out (name^" ");(* "( ("^(string_of_type (List.hd ltp))^")"); *)
-			if (not(contains name "mult" || contains name "div")) then
-				begin
-					prod_instr (false,"", nb +1, au, mn) (List.hd instrl);
-					List.iter (fun x -> out (", ");
-									prod_instr (false,"", nb +1, au, mn) x)
-						(List.rev (List.tl instrl));
-				end
-			else
+			out (name^" ");
+			let is_mult_or_div =
+				(contains name "mult" || contains name "div") in
+			if is_mult_or_div then
 				begin
 					prod_instr (false,"", nb +1, au, mn) (List.hd (List.rev (List.tl (List.tl(instrl)))));
 					List.iter (fun x -> out (", ");
 									prod_instr (false,"", nb +1, au, mn) x)
 						(List.tl (List.rev (List.tl(instrl))));
-				end;
-			
-			if (contains name "mult" || contains name "div") then
-				begin
 					out_start "mflo  " nb;
 					prod_instr (false,"", nb +1, au, mn) (List.hd instrl);
+				end
+			
+			else
+				begin
+					prod_instr (false,"", nb +1, au, mn) (List.hd instrl);
+					List.iter (fun x -> out (", ");
+									prod_instr (false,"", nb +1, au, mn) x)
+						(List.rev (List.tl instrl));
 				end;
 			
 			if !verbose_mode then
