@@ -389,38 +389,29 @@ let rec prod_instr (fr, sd, nb, mn) instr = match instr with
   | FUNCTION _ ->
     if !verbose_mode then
       begin
-	out ("");
 	out_start "# <function>" nb;
 	out_start "# </function>" nb;
       end;
     ();
 ;;
 
-(* UTILE : to clean *)
 let fun_header fn cn =
-
   if !verbose_mode then
     List.iter out
       ["\n\n";
-       (* "/**\n"; *)
        "# Declaration de la fonction "^fn^"\n";
-       (* " * vue comme la classe : "^cn^"\n"; " */ \n" *)
       ]
 ;;
 
-(* UTILE invocation *)
+(* invocation *)
 let prod_invoke_fun cn ar t lp instr =
-  (* out_start "MLvalue invoke_real(" 1; traitement des args *)
-
   if !verbose_mode then
     begin
       out ("  # Arg(s) pour "^cn^" : ");
-      out (""^(List.hd lp)); (* PREMIER ARG *)
-      List.iter (fun x -> out (", "^x)) (List.tl lp); (* LE RESTE DES ARGS : POUR LA VIRGULE*)
-      (* out_line ") {"; *)
+      out (""^(List.hd lp));
+      List.iter (fun x -> out (", "^x)) (List.tl lp);
     end;
   prod_instr (true,"",2, false) instr;
-  (* out_start "}" 1; out_line "" *)
 ;;
 
 (* function *)
@@ -441,12 +432,12 @@ let prod_fun instr = match instr with
   | _ -> ()
 ;;
 
-(* partie un *)
+(* generation des fonctions *)
 let prod_one ast_li =
   List.iter prod_fun ast_li
 ;;
 
-(* partie trois *)
+(* generation du main *)
 let prod_three ast_li =
   List.iter (prod_instr (false,"",0,true)) ast_li
 ;;
