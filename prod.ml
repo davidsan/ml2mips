@@ -78,7 +78,7 @@ let out_before (fr, sd, nb) =
 ;;
 
 let out_before_constant (fr, sd, nb) =
-  if (contains sd "$") then out_start ("li    "^sd^", ") nb
+  if (contains sd "") then out_start ("li    "^sd^", ") nb
   else if fr then out_start ("") nb;;
 
 let out_after (fr, sd, nb) =
@@ -91,7 +91,6 @@ let out_after (fr, sd, nb) =
 
 (* des fonctions utilitaires pour commenter un peu la production *)
 
-(* ON GARDE *)
 let header_main s =
   if !verbose_mode then
     List.iter out
@@ -100,7 +99,6 @@ let header_main s =
       ]
 ;;
 
-(* ON GARDE *)
 let footer_main s =
   if !verbose_mode then
     List.iter out
@@ -110,32 +108,6 @@ let footer_main s =
       ]
 ;;
 
-(* PAS UTILE *)
-let header_one s =
-  List.iter out
-    [ ]
-;;
-
-(* pas utile *)
-let footer_one s = ();;
-
-(* pas utile *)
-let header_two s =
-  List.iter out
-    [ ]
-;;
-
-(* pas utile *)
-let footer_two s = ();;
-
-(* utile *)
-let header_three s =
-  List.iter out
-    [
-      "\n\n";
-      "main:\n"
-    ]
-;;
 
 let fun_entry_point s alloc =
   List.iter out
@@ -162,6 +134,8 @@ let fun_exit_point s alloc =
 let main_entry_point s alloc =
   List.iter out
     [
+      "\n\n";
+      "main:\n";
       "\n";
       "  addiu $sp, $sp, "^string_of_int(- (alloc))^"\n";
       "  sw    $fp, "^string_of_int(alloc -4)^"($sp)\n";
@@ -197,7 +171,6 @@ let main_exit_point s alloc =
     ]
 ;;
 
-(* pas utile *)
 let footer_three s =
   List.iter out
     [ ]
@@ -442,30 +415,26 @@ let prod_file filename ast_li =
   try
     let alloc = 8 in
     header_main filename;
-    out ("  .data\n");
-
     (* generation des declaration des variable du main            *)
-    header_two filename; prod_two ast_li; footer_two filename;
+    out ("  .data\n");
+    prod_two ast_li;
     out ("\n");
 
     out ("  .text\n");
     out ("  j main\n");
+
     (* generation des fonctions *)
     if !verbose_mode then out ("\n# generation des fonctions\n");
     prod_one ast_li;
-    footer_one filename;
 
     (* generation du main *)
     if !verbose_mode then out ("\n# generation du main\n");
-
-    header_three filename;
     main_entry_point filename alloc;
     prod_three ast_li;
     main_print_point filename alloc;
     main_exit_point filename alloc;
 
     (* fin *)
-    footer_three filename;
     footer_main filename;
     close_out oc
   with x -> close_out oc; raise x;;
