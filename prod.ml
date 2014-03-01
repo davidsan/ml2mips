@@ -464,16 +464,15 @@ let prod_file filename ast_li =
     out ("#  .text:\n");
     out ("  j main\n");
     (* generation des fonctions *)
+    if !verbose_mode then out ("\n# generation des fonctions\n");
     prod_one ast_li;
     footer_one filename;
 
-    (* generation des declaration des gvars if !verbose_mode then out      *)
-    (* ("\n# Partie 2\n"); header_two filename; prod_two ast_li;           *)
-    (* footer_two filename;                                                *)
+    (* generation des declaration des variable globales                    *)
+    (* header_two filename; prod_two ast_li; footer_two filename;          *)
 
-    (* generation du main et des init des gvars *)
-    if !verbose_mode then
-      out ("\n# Partie 3\n");
+    (* generation du main *)
+    if !verbose_mode then out ("\n# generation du main\n");
 
     header_three filename;
     main_entry_point filename alloc;
