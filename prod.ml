@@ -224,8 +224,11 @@ let rec string_of_type typ = match typ with
 (* variable globale *)
 let prod_global_var instr = match instr with
     VAR (v, t) ->
-    out_start (v^":") 0;
-    out_start ("      .word val") 0;
+    if(not (contains v "value")) then
+    begin
+    	out_start (v^":") 0;
+    	out_start ("      .word 0") 0;
+	end;
   | FUNCTION (ns, t1, ar, (p, t2), instr) ->
     (* out_start ("statica MLvalue "(*"fun_"^ns^" "*)^ns^"= new MLfun_"^ns^"("^(string_of_int ar)^");") 1
        *)
@@ -265,20 +268,24 @@ let rec prod_local_var (fr, sd, nb) (v, t) =
 let rec prod_instr (fr, sd, nb) instr = match instr with
     CONST c ->
     if !verbose_mode then	out_start "# <const>" nb;
-    out_before_constant (fr, sd, nb);
-    if (contains sd "$") then prod_const c;
-    out_after (fr, sd, nb);
+    if (contains sd "$") then (* $v ou $a *)  
+    	begin
+    	out_before_constant (fr, sd, nb);
+    	prod_const c;
+    	out_after (fr, sd, nb);
+    	end
+    else (* variable globale (exemple : a1) *)
+    	begin
+    	out_before_constant (fr, "$a0", nb); (* load in tmp register *)
+    	prod_const c;
+    	out_start ("sw    $a0, "^sd) nb;
+    	out_after (fr, sd, nb);
+    	end;
     if !verbose_mode then out_start "# </const>" nb;
   | VAR (v, t) ->
     if (nb = 0) && ( sd = "") then
       begin
-	if !verbose_mode then
-	  begin
-	    out ("");
-	    out_start "# <var>" nb;
-	    out_start "# </var>\n" nb;
-	  end;
-	()
+	if !verbose_mode then out_start "# <var>" nb;
       end
     else
       begin
