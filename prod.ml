@@ -265,7 +265,7 @@ let contains s1 s2 =
   with Not_found -> false
 
 (* instructions *)
-let rec prod_instr (fr, sd, nb, mn) instr = match instr with
+let rec prod_instr (fr, sd, nb) instr = match instr with
     CONST c ->
     if !verbose_mode then	out_start "# <const>" nb;
     out_before_constant (fr, sd, nb);
@@ -302,14 +302,14 @@ let rec prod_instr (fr, sd, nb, mn) instr = match instr with
     (* début de l'alternative la condition a déjà été compilé vers le    *)
     (* registre $v0                                                      *)
     out_start "beqz  " nb; (* branch on equal zero *)
-    prod_instr (false,"", nb, mn) i1 ; (* $v0 *)
+    prod_instr (false,"", nb) i1 ; (* $v0 *)
     out (", "^elsel^"\n");
     (* consequent *)
-    prod_instr (fr, "garbage", nb +1, mn) i2 ;
+    prod_instr (fr, "garbage", nb +1) i2 ;
     out_start ("j "^endifl) nb;
     out ("\n"^elsel^":");
     (* alternant *)
-    prod_instr (fr, "garbage", nb +1, mn) i3;
+    prod_instr (fr, "garbage", nb +1) i3;
     (* fin de l'alternative *)
     out ("\n"^endifl^":");
     if !verbose_mode then out_start "# </if>" nb;
@@ -319,7 +319,7 @@ let rec prod_instr (fr, sd, nb, mn) instr = match instr with
 	out_start "# <return>" nb;
 	()
       end;
-    prod_instr (true, sd, nb, mn) i;
+    prod_instr (true, sd, nb) i;
 
     (* out_start "# copie du dernier registre connu de la derniere       *)
        (* instruction" nb; out_start "# dans le registre $v0 \n" nb;        *)
@@ -328,29 +328,22 @@ let rec prod_instr (fr, sd, nb, mn) instr = match instr with
   | AFFECT (v, i) ->
     if !verbose_mode then out_start "# <affect>" nb;
     if (contains v "value_") then
-      prod_instr (false, "$v0", nb, mn) i
+      prod_instr (false, "$v0", nb) i
     else
-      prod_instr (false, v, nb, mn) i;
+      prod_instr (false, v, nb) i;
     if !verbose_mode then out_start "# </affect>\n" nb;
 
   | BLOCK(l, i) ->
     if !verbose_mode then out_start "# <block>" nb;
 
-    List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1, mn) i) l;
-    if not fr then
-      begin
-	List.iter (fun (v, t, i) ->
-	    if not mn then
-	      prod_local_var (false,"", nb +1) (v, t)
-	  ) l;
-      end;
-    prod_instr (fr, sd, nb +1, mn) i;
+    List.iter (fun (v, t, i) -> prod_instr (false, v, nb +1) i) l;
+    prod_instr (fr, sd, nb +1) i;
 
     if !verbose_mode then out_start "# </block>\n" nb;
   | APPLY(i1, i2) ->
     if !verbose_mode then out_start "# <apply>" nb;
     out_before(fr, sd, nb);
-    prod_instr (false,"", nb, mn) i1;
+    prod_instr (false,"", nb) i1;
     if !verbose_mode then out_start "# </apply>" nb;
   | PRIM ((name, typ), instrl) ->
     if !verbose_mode then
@@ -365,20 +358,20 @@ let rec prod_instr (fr, sd, nb, mn) instr = match instr with
       (contains name "mult" || contains name "div") in
     if is_mult_or_div then
       begin
-	prod_instr (false,"", nb +1, mn) (List.nth instrl 2); (* operande gauche *)
+	prod_instr (false,"", nb +1) (List.nth instrl 2); (* operande gauche *)
 	out (", ");
-	prod_instr (false,"", nb +1, mn) (List.nth instrl 1); (* operande droite *)
+	prod_instr (false,"", nb +1) (List.nth instrl 1); (* operande droite *)
 	out_start "mflo  " nb; (* deplacement du resultat de $lo vers $v0 *)
-	prod_instr (false,"", nb +1, mn) (List.nth instrl 0); (* destination *)
+	prod_instr (false,"", nb +1) (List.nth instrl 0); (* destination *)
       end
 
     else
       begin
-	prod_instr (false,"", nb +1, mn) (List.nth instrl 0); (* destination *)
+	prod_instr (false,"", nb +1) (List.nth instrl 0); (* destination *)
 	out (", ");
-	prod_instr (false,"", nb +1, mn) (List.nth instrl 2); (* operande gauche *)
+	prod_instr (false,"", nb +1) (List.nth instrl 2); (* operande gauche *)
 	out (", ");
-	prod_instr (false,"", nb +1, mn) (List.nth instrl 1); (* operande droite *)
+	prod_instr (false,"", nb +1) (List.nth instrl 1); (* operande droite *)
       end;
 
     if !verbose_mode then
@@ -411,7 +404,7 @@ let prod_invoke_fun cn ar t lp instr =
       out (""^(List.hd lp));
       List.iter (fun x -> out (", "^x)) (List.tl lp);
     end;
-  prod_instr (true,"",2, false) instr;
+  prod_instr (true,"",2) instr;
 ;;
 
 (* function *)
@@ -439,7 +432,7 @@ let prod_one ast_li =
 
 (* generation du main *)
 let prod_three ast_li =
-  List.iter (prod_instr (false,"",0,true)) ast_li
+  List.iter (prod_instr (false,"",0)) ast_li
 ;;
 
 (* point d'entree *)
