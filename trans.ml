@@ -208,7 +208,7 @@ and
       new_name sd 
   in 
   let i = if (contains v "$") then translate_expr (gamma,false, sd,t) e 
-          else translate_expr (gamma, false, mips_gensym_reg_a(),t) e in
+    else translate_expr (gamma, false, mips_gensym_reg_a(),t) e in
   (v,nt,i)
 ;;
 

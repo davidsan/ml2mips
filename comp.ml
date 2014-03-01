@@ -51,30 +51,30 @@ let flat l = List.fold_left (fun x y -> x@y) [] l;;
 
       les expressions globales deviennent des declarations globales
 *)
-     
-      
+
+
 let rec translate_phrase  phr = match phr with 
-  Expr e ->
+    Expr e ->
     (translate_phrase  (Decl(Let(false, (* new_name *)decl_name,e))))
-| Decl (Let(b,s,e)) -> 
+  | Decl (Let(b,s,e)) -> 
     if b then 
       initial_typing_env:=(s,Forall([],new_unknown()))::!initial_typing_env;
     let et,qt = type_check e in 
 
     if b then  begin 
-       let ite = (List.tl !initial_typing_env) in
-       let (Forall (_, ti)) = qt in 
-       let new_elt  = List.hd(generalize_types ite [s,ti]) in   
-       initial_typing_env:=new_elt:: ( List.tl !initial_typing_env)
+      let ite = (List.tl !initial_typing_env) in
+      let (Forall (_, ti)) = qt in 
+      let new_elt  = List.hd(generalize_types ite [s,ti]) in   
+      initial_typing_env:=new_elt:: ( List.tl !initial_typing_env)
     end
     else initial_typing_env:=(s,qt)::!initial_typing_env;
 
     if !verbose_mode then print_string "+";
-      let _ (* e1 *)= acces_expr et
-      and t1 = acces_type et in 
-        let l2,e2 = lift et in 
-          ( ( translate_fun_decl l2))@
-            (translate_decl  b s e2 t1 )
+    let _ (* e1 *)= acces_expr et
+    and t1 = acces_type et in 
+    let l2,e2 = lift et in 
+    ( ( translate_fun_decl l2))@
+    (translate_decl  b s e2 t1 )
 ;;
 
 
@@ -90,12 +90,12 @@ let compile filename suffix =
   module_name:=filename;
 
   if !verbose_mode then 
-  begin 
-    print_endline "Analyse syntaxique (.)";
-    print_endline "Typage (+)";
-    print_endline "Traduction vers LI (*)";
-    print_newline()
-  end;
+    begin 
+      print_endline "Analyse syntaxique (.)";
+      print_endline "Typage (+)";
+      print_endline "Traduction vers LI (*)";
+      print_newline()
+    end;
 
   let instructions = ref [] in
   try 
@@ -118,4 +118,4 @@ let compile filename suffix =
 
 
 
-  
+

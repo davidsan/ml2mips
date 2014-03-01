@@ -193,13 +193,13 @@ let rec string_of_type typ = match typ with
 let prod_global_var instr = match instr with
     VAR (v, t) ->
     if(not (contains v "value")) then
-    begin
+      begin
     	out_start (v^":") 0;
     	out_start ("      .word 0") 0;
-	end;
+      end;
   | FUNCTION (ns, t1, ar, (p, t2), instr) ->
     (* out_start ("statica MLvalue "(*"fun_"^ns^" "*)^ns^"= new MLfun_"^ns^"("^(string_of_int ar)^");") 1
-       *)
+    *)
     ()
   | _ ->
     ()
@@ -237,18 +237,18 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
     CONST c ->
     if !verbose_mode then	out_start "# <const>" nb;
     if (contains sd "$") then (* $v ou $a *)  
-    	begin
+      begin
     	out_before_constant (fr, sd, nb);
     	prod_const c;
     	out_after (fr, sd, nb);
-    	end
+      end
     else (* variable globale (exemple : a1) *)
-    	begin
+      begin
     	out_before_constant (fr, "$t0", nb); (* load in tmp register *)
     	prod_const c;
     	out_start ("sw    $t0, "^sd) nb;
     	out_after (fr, sd, nb);
-    	end;
+      end;
     if !verbose_mode then out_start "# </const>" nb;
   | VAR (v, t) ->
     if (nb = 0) && ( sd = "") then
@@ -257,16 +257,16 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       end
     else
       begin
-    (* on filtre avec $a pour trouver tout ce qu'il faut lw (variables)  *)
-    (* il faut qu'il contienne un '$'                                    *)
-    if ((contains sd "$a") && (sd <> v) && (not (contains v !module_name))) then
-    	out_start("lw    "^sd^", "^v) nb;
+	(* on filtre avec $a pour trouver tout ce qu'il faut lw (variables)  *)
+	(* il faut qu'il contienne un '$'                                    *)
+	if ((contains sd "$a") && (sd <> v) && (not (contains v !module_name))) then
+    	  out_start("lw    "^sd^", "^v) nb;
 	if sd = "" then
 	  out (v)
 	else if sd = "MIPS_ARGS" then
 	  if not (contains v "$v" || contains v "$a")  then
 	    out_start ("jal   "^v) nb
-    	end
+      end
   | IF (i1, i2, i3) ->
     if !verbose_mode then out_start "# <if>" nb;
 
