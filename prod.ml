@@ -171,11 +171,6 @@ let main_exit_point s alloc =
     ]
 ;;
 
-let footer_three s =
-  List.iter out
-    [ ]
-;;
-
 (* on recupere le type pour une declaration precise *)
 let string_of_const_type ct = match ct with
     INTTYPE -> "MLint "
