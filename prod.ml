@@ -224,7 +224,8 @@ let rec string_of_type typ = match typ with
 (* variable globale *)
 let prod_global_var instr = match instr with
     VAR (v, t) ->
-    out_start ("statica "^"MLvalue "^(*(string_of_type t)*)v^";") 1
+    out_start (v^":") 0;
+    out_start ("      .word val") 0;
   | FUNCTION (ns, t1, ar, (p, t2), instr) ->
     (* out_start ("statica MLvalue "(*"fun_"^ns^" "*)^ns^"= new MLfun_"^ns^"("^(string_of_int ar)^");") 1
        *)
@@ -246,10 +247,10 @@ let get_param_type lv =
 (* constante *)
 let prod_const c = match c with
     INT i -> out (string_of_int i)
-  | FLOAT f -> out ("new MLdouble("^(string_of_float f)^")")
-  | BOOL b -> out ("new MLbool("^(if b then "true" else "false")^")")
-  | STRING s -> out ("new MLstring("^"\""^s^"\""^")")
-  | EMPTYLIST -> out ("MLruntime.MLnil")
+  | FLOAT f -> out (string_of_int (int_of_float f)) (* no floating point op *)
+  | BOOL b -> out (if b then "1" else "0")
+  | STRING s -> out ("\""^s^"\"")
+  | EMPTYLIST -> () (* unsupported *)
   | UNIT -> ()
 ;;
 
@@ -265,7 +266,7 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
     CONST c ->
     if !verbose_mode then	out_start "# <const>" nb;
     out_before_constant (fr, sd, nb);
-    prod_const c;
+    if (contains sd "$") then prod_const c;
     out_after (fr, sd, nb);
     if !verbose_mode then out_start "# </const>" nb;
   | VAR (v, t) ->
@@ -434,16 +435,18 @@ let prod_file filename ast_li =
   try
     let alloc = 8 in
     header_main filename;
-    out ("#  .data:\n");
-    out ("#  .text:\n");
+    out ("  .data\n");
+
+    (* generation des declaration des variable du main            *)
+    header_two filename; prod_two ast_li; footer_two filename;
+    out ("\n");
+
+    out ("  .text\n");
     out ("  j main\n");
     (* generation des fonctions *)
     if !verbose_mode then out ("\n# generation des fonctions\n");
     prod_one ast_li;
     footer_one filename;
-
-    (* generation des declaration des variable globales                    *)
-    (* header_two filename; prod_two ast_li; footer_two filename;          *)
 
     (* generation du main *)
     if !verbose_mode then out ("\n# generation du main\n");
