@@ -32,7 +32,7 @@ let gensym_var =
   let c = ref 0 in 
   function s -> 
     c:=!c+1;
-    s^"___"^(string_of_int !c)
+    s^(string_of_int !c)
 ;;
 
 (* Registres $t *)
@@ -113,7 +113,7 @@ let new_clos_name s = gensym_var s;;
 let clos_name name = (!module_name)^"."^(gensym_var name);;
 let anon_name () = gensym_var anon_symbol;;
 
-let new_cond ()    = (gensym_var "ELSE", gensym_var "ENDIF");;
+let new_cond ()    = (gensym_var "L", gensym_var "L");;
 
 let pair_symbol = ref ",";;
 let cons_symbol = ref "::";;

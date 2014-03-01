@@ -288,7 +288,7 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
 	if sd = "" then
 	  out (v)
 	else if sd = "MIPS_ARGS" then
-	  if not (contains v "$") then
+	  if not (contains v "$v" || contains v "$a")  then
 	    out_start ("jal   "^v) nb
       end;
   | IF (i1, i2, i3) ->
@@ -321,7 +321,7 @@ let rec prod_instr (fr, sd, nb) instr = match instr with
       out_start "# </return>\n" nb;
   | AFFECT (v, i) ->
     if !verbose_mode then out_start "# <affect>" nb;
-    if (contains v "value_") then
+    if (contains v "value") then
       prod_instr (false, "$v0", nb) i
     else
       prod_instr (false, v, nb) i;
