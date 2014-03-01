@@ -54,6 +54,15 @@ initial_trans_env:=
       ]
   )
 ;;
+
+
+let contains s1 s2 =
+  let re = Str.regexp_string s2
+  in
+  try ignore (Str.search_forward re s1 0); true
+  with Not_found -> false
+;;
+
 (* des fonctions d'I/O *)
 let output_channel = ref stdout;;
 let change_output_channel oc = output_channel := oc;;
@@ -258,11 +267,6 @@ let rec prod_local_var (fr, sd, nb) (v, t) =
   ()
 ;;
 
-let contains s1 s2 =
-  let re = Str.regexp_string s2
-  in
-  try ignore (Str.search_forward re s1 0); true
-  with Not_found -> false
 
 (* instructions *)
 let rec prod_instr (fr, sd, nb) instr = match instr with
