@@ -8,3 +8,5 @@
 *.cmxs
 *.cmxa
 .settings/ocaml.prefs
+tests/*.s
+tests/*.result
