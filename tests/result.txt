@@ -1,0 +1,20 @@
+[PASSED]         2 add.s
+[PASSED]        42 alternative.s
+[PASSED]        12 alternative2.s
+[PASSED]        42 calls.s
+[PASSED]        42 const.s
+[PASSED]        50 div.s
+[PASSED]         4 easy.s
+[PASSED]         0 empty.s
+[PASSED]         1 essai.s
+[PASSED]        20 fun1.s
+[PASSED]        42 fun2.s
+[PASSED]        61 fun3.s
+[PASSED]       891 fun4.s
+[PASSED]        49 funalt.s
+[PASSED]       900 funcvar.s
+[PASSED]        20 mult.s
+[PASSED]        20 op20.s
+[PASSED]        18 op3.s
+[PASSED]         9 sub.s
+All 19 tests passed.
